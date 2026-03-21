@@ -1,5 +1,5 @@
 set(CMAKE_AUTOMOC ON)
-add_executable(test_core test_audiotask.cpp)
+add_executable(test_core test_decoder.cpp)
 target_include_directories(test_core PUBLIC
     ${CMAKE_SOURCE_DIR}/src/core
 )

@@ -14,7 +14,6 @@ extern "C" {
     #include <libswresample/swresample.h>
 }
 
-
 /// @brief deleter for smart pointers
 struct SwrContextDeleter {
     void operator()(SwrContext* ctx) const { swr_free(&ctx); }
@@ -64,21 +63,19 @@ class FFmpegAudioTask : public AudioTask
 signals:
     void data_ffmpeg(QSharedPointer<QByteArray> pdata);
     void error_ffmpeg(const QString& msg);
-    void message_ffmpeg(const QString& msg);
-    void message_finished();
 public:
     explicit FFmpegAudioTask(QObject* parent = nullptr) noexcept : AudioTask(parent){}
-    virtual void cancle() noexcept override;
+    // virtual void cancle() noexcept override;
+    virtual void merge(const QStringList& input_file, const QString& output_file) override;
     virtual void decode(const FFmpegFormatConfig& config) override;
     virtual void decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) override;
+    virtual void transcode(const QStringList& input_file, const QString& output_file) override;
 protected:
     virtual bool initialize(const QString& file_path) override;
 private:
     void emit_formatted_error(const QString& message);
     void emit_formatted_error(const char* prefix, const int error_code);
     void emit_formatted_message(const QString& message);
-
-    std::atomic<bool>   _atomic_cancle{false};
 
     QString             _file_path{};
     SwrContextPtr       _swr_context{nullptr};

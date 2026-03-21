@@ -2,29 +2,6 @@
 
 #include "QtCore/qdebug.h"
 
-bool AudioTask::init(const QString &file_path) noexcept
-{
-    /// @brief double-checked locking
-    if(_atomic_initialized.load(std::memory_order_acquire)) {
-        /// @todo emit error signal
-        return false;
-    }
-    QMutexLocker locker(&_qmutex_initialized);
-    if(_atomic_initialized.load(std::memory_order_acquire)) {
-        /// @todo emit error signal
-        return false;
-    }
-
-    bool b_result = initialize(file_path);
-    _atomic_initialized.store(b_result, std::memory_order_relaxed);
-    return b_result;
-}
-
-void FFmpegAudioTask::cancle() noexcept
-{
-    _atomic_cancle.store(true, std::memory_order_acquire);
-}
-
 bool FFmpegAudioTask::initialize(const QString &file_path)
 {
     AVFormatContext *format_context{nullptr};
@@ -72,7 +49,6 @@ bool FFmpegAudioTask::initialize(const QString &file_path)
     emit_formatted_message("Initialized successfully");
     return true;
 }
-
 
 void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
 {
@@ -252,6 +228,16 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
 }
 
 void FFmpegAudioTask::decode(std::function<void(std::span<const uint8_t>)> f_pcmdata)
+{
+    return ;
+}
+
+void FFmpegAudioTask::transcode(const QStringList &input_file, const QString &output_file)
+{
+    return ;
+}
+
+void FFmpegAudioTask::merge(const QStringList &input_file, const QString &output_file)
 {
     return ;
 }

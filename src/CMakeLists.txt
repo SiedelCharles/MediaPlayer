@@ -14,20 +14,31 @@ set(FFMPEG_LIBS #库文件,根据依赖关系,越往下越底层
     ${FFMPEG_LIB_PATH}/libavutil.dll.a
 )
 
+set(WHISPER_LIB_PATH ${DEPENDENCY_PATH}/whisper/lib)
+set(WHISPER_LIBS
+    ${WHISPER_LIB_PATH}/ggml.lib
+    ${WHISPER_LIB_PATH}/whisper.lib
+    ${WHISPER_LIB_PATH}/ggml-cpu.lib
+    ${WHISPER_LIB_PATH}/ggml-base.lib
+)
+
 
 set(CORE_SOURCES
     core/FFmpegAudioTask.cpp
     core/FFmpegAudioTask.h
+    core/AudioTaskInterface.cpp
     core/AudioTaskInterface.h
 )
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${DEPENDENCY_PATH}/ffmpeg/include
+    ${DEPENDENCY_PATH}/whisper/include
 )
 target_link_libraries(core 
     PUBLIC
     ${FFMPEG_LIBS}
+    ${WHISPER_LIBS}
     Qt6::Core
 )
 

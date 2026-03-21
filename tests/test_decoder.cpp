@@ -1,4 +1,5 @@
 #include "FFmpegAudioTask.h"
+#include "AudioTaskInterface.h"
 #include <iostream>
 
 #include "QtCore/qtimer.h"
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
     QObject::connect(thread, &QThread::finished, audiotask, &QObject::deleteLater);
     QObject::connect(thread, &QThread::finished, &app, &QCoreApplication::quit);
 
-    QTimer::singleShot(5000, audiotask, &FFmpegAudioTask::cancle);
+    // QTimer::singleShot(5000, audiotask, &AudioTask::cancle);
     thread->start();
 
     return app.exec();

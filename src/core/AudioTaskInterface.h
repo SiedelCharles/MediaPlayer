@@ -14,9 +14,14 @@
 constexpr size_t AV_ERROR_MAX_BUFFER_SIZE = 64;
 
 class FFmpegFormatConfig;
+
+/// @brief this class is for audio decode,transcode, and merge
 class AudioTask : public QObject
 {
     Q_OBJECT
+signals:    
+    void message_ffmpeg(const QString& msg);
+    void message_finished();
 public:
     explicit AudioTask(QObject* parent = nullptr) noexcept : QObject(parent) {};
     ~AudioTask() override = default;
@@ -32,21 +37,19 @@ public:
     /// @return true if initialization succeeds
     [[nodiscard]] bool init(const QString& file_path) noexcept;
     /// @brief 
-    virtual void cancle() noexcept = 0;
+    virtual void cancle() noexcept;
+    virtual void merge(const QStringList& input_file, const QString& output_file) = 0;
     virtual void decode(const FFmpegFormatConfig& config) = 0;
     virtual void decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) = 0;
+    virtual void transcode(const QStringList& input_file, const QString& output_file) = 0;
 
     bool is_initialized() const noexcept;
-    // virtual void transcode(const QString& input_file, const QString& output_file,
-    //                        const QString& target_format, const QVariantMap& options = {}) = 0;
-    
-    // virtual void merge(const QStringList& inputFiles, const QString& outputFile,
-    //                    const QVariantMap& options = {}) = 0;
 protected:
     /// @brief subclasses actually initialize ffmpeg resources
     /// @param file_path input file
     /// @return true if initialization succeeds
     virtual bool initialize(const QString& file_path) = 0;
+    std::atomic<bool>   _atomic_cancle{false};
 private:
     QMutex              _qmutex_initialized;
     std::atomic<bool>   _atomic_initialized{false};
