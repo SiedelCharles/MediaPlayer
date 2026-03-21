@@ -12,6 +12,11 @@
 #include <functional>
 
 constexpr size_t AV_ERROR_MAX_BUFFER_SIZE = 64;
+enum class Merge_Option {
+    MergeInsert,
+    MergeMixing,
+    MergeConcatenate,
+};
 
 class FFmpegFormatConfig;
 
@@ -38,7 +43,9 @@ public:
     [[nodiscard]] bool init(const QString& file_path) noexcept;
     /// @brief 
     virtual void cancle() noexcept;
-    virtual void merge(const QStringList& input_file, const QString& output_file) = 0;
+    virtual void play() = 0;
+    virtual void merge(const QStringList& input_file, const QString& output_file, Merge_Option option) = 0;
+    virtual void encode(const FFmpegFormatConfig& config) = 0;
     virtual void decode(const FFmpegFormatConfig& config) = 0;
     virtual void decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) = 0;
     virtual void transcode(const QStringList& input_file, const QString& output_file) = 0;
@@ -59,3 +66,11 @@ inline bool AudioTask::is_initialized() const noexcept
 {
     return _atomic_initialized.load(std::memory_order_acquire);
 }
+
+/// @brief this class is for whisper task
+class WhisperTask : public QObject
+{
+    Q_OBJECT
+signals:
+public:
+};

@@ -66,7 +66,9 @@ signals:
 public:
     explicit FFmpegAudioTask(QObject* parent = nullptr) noexcept : AudioTask(parent){}
     // virtual void cancle() noexcept override;
-    virtual void merge(const QStringList& input_file, const QString& output_file) override;
+    virtual void play() override;
+    virtual void merge(const QStringList& input_file, const QString& output_file, Merge_Option option) override;
+    virtual void encode(const FFmpegFormatConfig& config) override;
     virtual void decode(const FFmpegFormatConfig& config) override;
     virtual void decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) override;
     virtual void transcode(const QStringList& input_file, const QString& output_file) override;

@@ -237,7 +237,24 @@ void FFmpegAudioTask::transcode(const QStringList &input_file, const QString &ou
     return ;
 }
 
-void FFmpegAudioTask::merge(const QStringList &input_file, const QString &output_file)
+void FFmpegAudioTask::play()
+{
+    return ;
+}
+
+void FFmpegAudioTask::merge(const QStringList &input_file, const QString &output_file, Merge_Option option)
+{
+    switch(option) {
+        case Merge_Option::MergeConcatenate:
+            break;
+        case Merge_Option::MergeInsert:
+            break;
+        case Merge_Option::MergeMixing:
+            break;
+    }
+}
+
+void FFmpegAudioTask::encode(const FFmpegFormatConfig &config)
 {
     return ;
 }
