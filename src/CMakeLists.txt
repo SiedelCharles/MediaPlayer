@@ -1,6 +1,8 @@
 set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/mingw_64" ${CMAKE_PREFIX_PATH})
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
+set(CMAKE_AUTOMOC ON)
+
 set(DEPENDENCY_PATH ${CMAKE_SOURCE_DIR}/dependency)
 
 set(FFMPEG_LIB_PATH ${DEPENDENCY_PATH}/ffmpeg/lib)
@@ -15,6 +17,8 @@ set(FFMPEG_LIBS #库文件,根据依赖关系,越往下越底层
 
 set(CORE_SOURCES
     core/FFmpegAudioTask.cpp
+    core/FFmpegAudioTask.h
+    core/AudioTaskInterface.h
 )
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC
@@ -22,7 +26,7 @@ target_include_directories(core PUBLIC
     ${DEPENDENCY_PATH}/ffmpeg/include
 )
 target_link_libraries(core 
-    PRIVATE
+    PUBLIC
     ${FFMPEG_LIBS}
     Qt6::Core
 )
@@ -42,5 +46,5 @@ set(APP_SOURCES
     app/main.cpp
 )
 add_executable(app ${APP_SOURCES})
-target_link_libraries(app PRIVATE core) # gui
-target_link_libraries(app PRIVATE Qt6::Core Qt6::Widgets)
+target_link_libraries(app PUBLIC core) # gui
+target_link_libraries(app PUBLIC Qt6::Core Qt6::Widgets)

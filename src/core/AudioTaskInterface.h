@@ -52,24 +52,6 @@ private:
     std::atomic<bool>   _atomic_initialized{false};
 };
 
-bool AudioTask::init(const QString &file_path) noexcept
-{
-    /// @brief double-checked locking
-    if(_atomic_initialized.load(std::memory_order_acquire)) {
-        /// @todo emit error signal
-        return false;
-    }
-    QMutexLocker locker(&_qmutex_initialized);
-    if(_atomic_initialized.load(std::memory_order_acquire)) {
-        /// @todo emit error signal
-        return false;
-    }
-
-    bool b_result = initialize(file_path);
-    _atomic_initialized.store(b_result, std::memory_order_relaxed);
-    return b_result;
-}
-
 inline bool AudioTask::is_initialized() const noexcept
 {
     return _atomic_initialized.load(std::memory_order_acquire);

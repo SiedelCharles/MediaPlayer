@@ -1,3 +1,5 @@
+#pragma once
+
 #include "AudioTaskInterface.h"
 #include <span>
 #include <atomic>
@@ -59,15 +61,22 @@ class FFmpegAudioTask : public AudioTask
     using SwrContextPtr     = std::unique_ptr<SwrContext, SwrContextDeleter>;
     using CodecContextPtr   = std::unique_ptr<AVCodecContext, AVCodecContextDeleter>;
     using FormatContextPtr  = std::unique_ptr<AVFormatContext, AVFormatContextDeleter>;
+signals:
+    void data_ffmpeg(QSharedPointer<QByteArray> pdata);
+    void error_ffmpeg(const QString& msg);
+    void message_ffmpeg(const QString& msg);
+    void message_finished();
 public:
     explicit FFmpegAudioTask(QObject* parent = nullptr) noexcept : AudioTask(parent){}
     virtual void cancle() noexcept override;
-protected:
-    virtual bool initialize(const QString& file_path) override;
     virtual void decode(const FFmpegFormatConfig& config) override;
     virtual void decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) override;
+protected:
+    virtual bool initialize(const QString& file_path) override;
 private:
+    void emit_formatted_error(const QString& message);
     void emit_formatted_error(const char* prefix, const int error_code);
+    void emit_formatted_message(const QString& message);
 
     std::atomic<bool>   _atomic_cancle{false};
 
@@ -80,9 +89,18 @@ private:
     AVRational          _stream_timebase{0,0};
 };
 
+inline void FFmpegAudioTask::emit_formatted_error(const QString& message)
+{
+    emit error_ffmpeg(message);
+}
 inline void FFmpegAudioTask::emit_formatted_error(const char *prefix, const int error_code)
 {
     char errbuf[AV_ERROR_MAX_BUFFER_SIZE];
     av_strerror(error_code, errbuf, sizeof(errbuf));
-    /// @todo emit error signal
+    QString message{QString::fromUtf8(prefix)+" with error: "+QString::fromUtf8(errbuf)};
+    emit error_ffmpeg(message);
+}
+inline void FFmpegAudioTask::emit_formatted_message(const QString &message)
+{
+    emit message_ffmpeg(message);
 }
