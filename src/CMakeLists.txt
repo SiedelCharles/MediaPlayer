@@ -1,5 +1,8 @@
 set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/mingw_64" ${CMAKE_PREFIX_PATH})
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+set(pybind11_DIR "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/myenv/lib/site-packages/pybind11/share/cmake/pybind11")
+find_package(pybind11 CONFIG REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -52,10 +55,17 @@ target_link_libraries(core
 # )
 # target_link_libraries(gui PRIVATE Qt6::Core)
 
+set(SCRIPTS_SOURCES
+    scripts/translate_script.cpp
+)
+add_library(scripts STATIC ${SCRIPTS_SOURCES})
+target_link_libraries(scripts PUBLIC pybind11::embed Python::Python)
+
 
 set(APP_SOURCES
     app/main.cpp
+    ${SCRIPTS_SOURCES}
 )
 add_executable(app ${APP_SOURCES})
-target_link_libraries(app PUBLIC core) # gui
+target_link_libraries(app PUBLIC core scripts) # gui
 target_link_libraries(app PUBLIC Qt6::Core Qt6::Widgets)
