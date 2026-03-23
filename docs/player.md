@@ -33,4 +33,13 @@
     1. 在add_test中的最后加入$<TARGET_FILE:"filename">, "filename"是目标名字,在单配置生成器（如 MinGW 用的 MinGW Makefiles 或 Ninja）下，CMake 在配置阶段就已经知道可执行文件的最终路径（例如直接放在 build/ 目录下），因此 add_test(NAME TestCore COMMAND test_core) 能直接找到目标。
     而多配置生成器（如 Visual Studio、Xcode）会在构建目录下生成 Debug、Release 等子目录，可执行文件的实际路径依赖于构建配置。此时若直接写 COMMAND test_core，CMake 无法确定应该去哪个子目录查找，CTest 就会报 NOT_AVAILABLE。
     生成器表达式 $<TARGET_FILE:test_core> 在构建时会根据当前配置（如 -C Debug）自动展开为 .../Debug/test_core.exe，因此能适配多配置生成器。为了代码跨平台、跨生成器，建议统一使用生成器表达式，这样无论使用 MinGW 还是 Visual Studio，测试都能正确运行。
-5. pybind11的问题,pybind11只支持VS编译器,不支持mingw
+5. pybind11的问题,pybind11只支持VS编译器,不支持mingw,上述问题都可以被认为是这个导致的,因为我之前用的就是mingw编译的
+    现在已经解决了
+6.  ImportError: DLL load failed while importing _ssl:<br>
+    这个和import openai有关
+    直接把两个dll文件放到bin文件夹里了:这次运行了2分钟
+7. Fatal Python error: PyThreadState_Get: the function must be called with the GIL held, but the GIL is released (the current Python thread state is NULL)
+    1. 意外调用了该文件Py_Finalize();不过6中的调用是成功的
+8. SegFault1
+    这是因为把pybind11中的module设置为了extern,导致在析构时出现问题
+    1. 把全局的module删除,设置为cpp接口函数的一个参数:解决了

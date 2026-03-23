@@ -49,3 +49,4 @@ dependency/
 *.txt
 
 __pycache__/
+*.wav

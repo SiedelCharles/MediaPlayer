@@ -68,6 +68,7 @@ target_link_libraries(core
 
 set(SCRIPTS_SOURCES
     scripts/translate_script.cpp
+    scripts/synthesis_script.cpp
 )
 add_library(scripts STATIC ${SCRIPTS_SOURCES})
 # target_link_options(scripts PRIVATE $<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
