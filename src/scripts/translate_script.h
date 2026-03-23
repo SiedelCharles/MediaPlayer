@@ -1,6 +1,11 @@
 #pragma once
 /// @brief this is to call translation python scripts
 #include <string>
+#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+extern py::module_ s_script;
 
 bool process_srt(const std::string& source_file, const std::string& output_file1, const std::string& output_file2);
 bool translate(const std::string& processed_text, const std::string& translated_text);

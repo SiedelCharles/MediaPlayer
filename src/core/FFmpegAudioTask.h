@@ -31,7 +31,7 @@ struct AVFormatContextDeleter {
 static bool bool_meta_type_register = []() {
     qRegisterMetaType<QSharedPointer<QByteArray>>();
     return true;
-};
+}(); /// @brief Add "()" is to solve a known issue in the MSVC compiler regarding the implicit conversion of non-capturing lambdas to bool
 
 /// @brief audio resampling format
 struct FFmpegFormatConfig{

@@ -1,7 +1,18 @@
-set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/mingw_64" ${CMAKE_PREFIX_PATH})
+# import qt
+if(MSVC)
+    set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/msvc2019_64" ${CMAKE_PREFIX_PATH})
+elseif(MINGW)
+    set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/mingw_64" ${CMAKE_PREFIX_PATH})
+else()
+    message(FATAL_ERROR "Some_Package not found")
+endif()
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
+set(Python_ROOT_DIR "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/audio")
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
-set(pybind11_DIR "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/myenv/lib/site-packages/pybind11/share/cmake/pybind11")
+
+set(pybind11_DIR "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/audio/lib/site-packages/pybind11/share/cmake/pybind11")
+set(PYBIND11_PYTHON_LIBRARY_DEBUG "${Python_LIBRARIES}")
 find_package(pybind11 CONFIG REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
@@ -59,6 +70,7 @@ set(SCRIPTS_SOURCES
     scripts/translate_script.cpp
 )
 add_library(scripts STATIC ${SCRIPTS_SOURCES})
+# target_link_options(scripts PRIVATE $<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
 target_link_libraries(scripts PUBLIC pybind11::embed Python::Python)
 
 
