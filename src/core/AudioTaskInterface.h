@@ -20,7 +20,7 @@ enum class Merge_Option {
 
 class FFmpegFormatConfig;
 
-/// @brief this class is for audio decode,transcode, and merge
+/// @brief This class handles audio tasks and binds to a specific file type upon initialization.
 class AudioTask : public QObject
 {
     Q_OBJECT
@@ -38,9 +38,10 @@ public:
     AudioTask& operator=(AudioTask&&) = delete;
 
     /// @brief Initialize ffmpeg resources, this function is thread-safe.
-    /// @param file_path Input file
-    /// @return true if initialization succeeds
+    /// @param file_path input file
+    /// @return 'true' if initialization succeeds
     [[nodiscard]] bool init(const QString& file_path) noexcept;
+
     /// @brief 
     virtual void cancle() noexcept;
     virtual void play() = 0;
@@ -56,7 +57,8 @@ protected:
     /// @param file_path input file
     /// @return true if initialization succeeds
     virtual bool initialize(const QString& file_path) = 0;
-    std::atomic<bool>   _atomic_cancle{false};
+    QString             _file_path;
+    std::atomic<bool>   _atomic_cancel{false};
 private:
     QMutex              _qmutex_initialized;
     std::atomic<bool>   _atomic_initialized{false};

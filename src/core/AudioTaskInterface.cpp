@@ -19,5 +19,5 @@ bool AudioTask::init(const QString &file_path) noexcept
 
 void AudioTask::cancle() noexcept
 {
-    _atomic_cancle.store(true, std::memory_order_acquire);
+    _atomic_cancel.store(true, std::memory_order_acquire);
 }

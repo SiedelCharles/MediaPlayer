@@ -42,7 +42,11 @@ set(CORE_SOURCES
     core/FFmpegAudioTask.h
     core/AudioTaskInterface.cpp
     core/AudioTaskInterface.h
+    core/AudioTask.h
+    core/WhisperAudioTask.cpp
+    core/WhisperAudioTask.h
 )
+
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core

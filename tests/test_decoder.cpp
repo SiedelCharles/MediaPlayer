@@ -1,3 +1,4 @@
+#include "WhisperAudioTask.h"
 #include "FFmpegAudioTask.h"
 #include "AudioTaskInterface.h"
 #include <iostream>
@@ -26,22 +27,21 @@ int main(int argc, char *argv[]) {
         }
     });
     QObject::connect(audiotask, &FFmpegAudioTask::error_ffmpeg, [thread](const QString& msg) {
-        /// @todo process error 
-        thread->quit();
-        thread->wait();
-        thread->deleteLater();
+        /// @todo process error
         qDebug() << msg;
+        thread->quit();
     });
     QObject::connect(audiotask, &FFmpegAudioTask::message_finished, [thread]() {
         /// @todo process error 
-        thread->quit();
-        thread->wait();
-        thread->deleteLater();
         qDebug() << "Decode finished";
+        thread->quit();
     });
-    QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
-    QObject::connect(thread, &QThread::finished, audiotask, &QObject::deleteLater);
-    QObject::connect(thread, &QThread::finished, &app, &QCoreApplication::quit);
+    QObject::connect(thread, &QThread::finished, [thread, audiotask, &app]() {
+        thread->wait();
+        delete audiotask;
+        thread->deleteLater(); 
+        app.quit();
+    });
 
     // QTimer::singleShot(5000, audiotask, &AudioTask::cancle);
     thread->start();

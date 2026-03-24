@@ -100,7 +100,7 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
         return ;
     }
     std::vector<uint8_t> buffer;
-    while(!_atomic_cancle.load(std::memory_order_acquire)) {
+    while(!_atomic_cancel.load(std::memory_order_acquire)) {
         /// @brief process packet
         if (auto i_result = av_read_frame(_format_context.get(), packet.get())
         ; i_result == AVERROR_EOF) {
