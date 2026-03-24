@@ -14,6 +14,7 @@ void WhisperAudioTask::transcribe(const QString & file_path, const struct whispe
     whisper_free(_whisper_context);
     _whisper_context = nullptr;
     emit message_finished();
+    stop();
 }
 
 bool WhisperAudioTask::initialize(const QString &file_path) noexcept

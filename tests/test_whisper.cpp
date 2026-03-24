@@ -68,13 +68,12 @@ int main(int argc, char *argv[]) {
             of.close();
         }
     });
-    QObject::connect(whispertask, &WhisperAudioTask::message_finished, [whisperthread]() {
+    QObject::connect(whispertask, &WhisperAudioTask::message_finished, [whispertask, whisperthread]() {
         /// @todo process error 
         qDebug() << "transcribed finished";
         whisperthread->quit();
     });
     QObject::connect(whisperthread, &QThread::finished, [whisperthread, whispertask, &app]() {
-        whisperthread->wait();
         delete whispertask;
         whisperthread->deleteLater(); 
         app.quit();
@@ -83,7 +82,6 @@ int main(int argc, char *argv[]) {
         thread->wait();
         delete audiotask;
         thread->deleteLater(); 
-        // app.quit();
     });
 
     // QTimer::singleShot(5000, audiotask, &AudioTask::cancle);

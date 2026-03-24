@@ -80,6 +80,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 &_codec_context->ch_layout, _codec_context->sample_fmt, _codec_context->sample_rate,
                 0, nullptr)
                 ; i_result < 0) {
+                emit_formatted_error("Failed to alloc swr", i_result);
+                return ;
+            }
+            if (auto i_result = swr_init(swr_context)
+            ; i_result < 0) {
                 emit_formatted_error("Failed to init swr", i_result);
                 return ;
             }
