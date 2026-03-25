@@ -51,4 +51,4 @@
 10. test_whisper没有输出结果
     原因:buffer的逻辑问题
 11. 调用whisper_full显示segfault
-    
+    原因:未调用whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);

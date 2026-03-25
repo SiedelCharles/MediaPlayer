@@ -1,7 +1,15 @@
+#include "srttimestamp.h"
 #include "WhisperAudioTask.h"
+
 #include <iostream>
 
 void WhisperAudioTask::transcribe(const QString & file_path, const struct whisper_full_params& full_params, WhisperTranscriptionMode mode) {
+    if (auto b_result = is_initialized()
+        ; !b_result) {
+        /// @todo emit error
+        std::cout << "uninitialezed" << std::endl;
+        return ;
+    }
     switch(mode) {
         case WhisperTranscriptionMode::Offline:
             transcribe_offline(file_path, full_params);
@@ -78,13 +86,11 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
         accumulated_data.append(current_batch);
     }
 
-    std::cout << "size: " << accumulated_data.size() << std::endl;
     if (auto i_result = whisper_full(_whisper_context, full_params, accumulated_data.data(), accumulated_data.size())
         ; i_result != 0) {
             /// @todo emit error signal;
             return ;
         }
-    std::cout << "b2" << std::endl;
     int segments = whisper_full_n_segments(_whisper_context);
     QString transcribed_text;
     for (int i = 0; i < segments; ++i) {
@@ -92,15 +98,12 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
         int64_t t0 = whisper_full_get_segment_t0(_whisper_context, i);
         int64_t t1 = whisper_full_get_segment_t1(_whisper_context, i);
         /// @todo related to timestamp part in utils
-        QString timestamp = QString("[%1.%2 --> %3.%4]")
-                                .arg(t0/1000).arg(t0%1000, 3, 10, QChar('0'))
-                                .arg(t1/1000).arg(t1%1000, 3, 10, QChar('0'));
-        transcribed_text += timestamp + "\n" + QString::fromUtf8(text);
+        std::string timestamp = convert_to_srt_timestamp(t0, t1);
+        transcribed_text += QString::fromStdString(timestamp) +  " " + QString::fromUtf8(text) + "\n" ;
     }
     /// @todo emit data
     // std::cout << transcribed_text.toStdString() << std::endl;
     emit text_transcribed(transcribed_text);
-
     return ;
 }
 

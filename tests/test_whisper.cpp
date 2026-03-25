@@ -12,7 +12,7 @@
 const QString file_path = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\QT\\AudioPlayer\\resource\\05_妹の登校日.wav";
 const QString model_path = "D:\\VisualStudio_Created\\VisualStudio_Resource\\audio\\whisper.cpp\\models\\ggml-small.bin";
 
-const std::string output_path = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\MediaPlayer\\resources\\tests\\05_妹の登校日.txt";
+const std::string output_path = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\MediaPlayer\\resources\\tests\\yuri_05.txt";
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello World." << std::endl;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     auto *whisperthread = new QThread();
     whispertask->moveToThread(whisperthread);
 
-    struct whisper_full_params params;
+    whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
     params.print_realtime   = false;
     params.print_progress   = false;
     params.print_timestamps = true;
@@ -69,11 +69,12 @@ int main(int argc, char *argv[]) {
         thread->quit();
     });
     QObject::connect(whispertask, &WhisperAudioTask::text_transcribed, [whisperthread](const QString& text) {
-        /// @todo process error 
         std::ofstream of(output_path, std::ios::app);
         if (of.is_open()) {
             of << text.toStdString();
             of.close();
+        } else {
+            std::cerr << "Failed to open file: " << std::strerror(errno) << std::endl;
         }
     });
     QObject::connect(whispertask, &WhisperAudioTask::message_finished, [whispertask, whisperthread]() {

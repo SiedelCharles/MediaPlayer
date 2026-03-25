@@ -52,6 +52,7 @@ target_include_directories(core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${DEPENDENCY_PATH}/ffmpeg/include
     ${DEPENDENCY_PATH}/whisper/include
+    ${CMAKE_SOURCE_DIR}/src/utils
 )
 target_link_libraries(core 
     PUBLIC
