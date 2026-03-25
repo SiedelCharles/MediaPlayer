@@ -55,8 +55,15 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
     while (true) {
        QVector<float> current_batch;
         {
-            while (_data_buffer.isEmpty() && !_atomic_stop.load(std::memory_order_acquire) && !_atomic_cancel.load(std::memory_order_acquire)) {
+            QMutexLocker locker(&_qmutex_buffer);
+            while (_data_buffer.isEmpty() && !_atomic_stop.load(std::memory_order_acquire)
+             && !_atomic_cancel.load(std::memory_order_acquire) && !_atomic_eof.load(std::memory_order_acquire)) {
                 _qcondition_wait.wait(&_qmutex_buffer);
+            }
+            /// @todo
+            if (_atomic_cancel.load(std::memory_order_acquire)) {
+                _data_buffer.clear();
+                return;
             }
             if (_data_buffer.isEmpty()) {
                 break;
@@ -71,11 +78,13 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
         accumulated_data.append(current_batch);
     }
 
+    std::cout << "size: " << accumulated_data.size() << std::endl;
     if (auto i_result = whisper_full(_whisper_context, full_params, accumulated_data.data(), accumulated_data.size())
         ; i_result != 0) {
             /// @todo emit error signal;
             return ;
         }
+    std::cout << "b2" << std::endl;
     int segments = whisper_full_n_segments(_whisper_context);
     QString transcribed_text;
     for (int i = 0; i < segments; ++i) {

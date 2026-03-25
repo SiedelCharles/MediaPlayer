@@ -43,3 +43,12 @@
 8. SegFault1
     这是因为把pybind11中的module设置为了extern,导致在析构时出现问题
     1. 把全局的module删除,设置为cpp接口函数的一个参数:解决了
+9. 线程问题,和qmutex相关
+    原因:task内部维护一个线程安全的buffer,如果生产者不正常退出,就会导致该部分死锁.
+    1. 因为ffmpegtask的部分和whispertask的部分抽象基类不同,暂时不更改这部分逻辑,改为在测试中更改<br>
+    失败
+    2. 结果发现是忘记lockerguard了
+10. test_whisper没有输出结果
+    原因:buffer的逻辑问题
+11. 调用whisper_full显示segfault
+    

@@ -27,8 +27,15 @@ int main(int argc, char *argv[]) {
     whispertask->moveToThread(whisperthread);
 
     struct whisper_full_params params;
-        params.language         = "ja";
-        params.n_threads        = 4;
+    params.print_realtime   = false;
+    params.print_progress   = false;
+    params.print_timestamps = true;
+    params.print_special    = false;
+    params.translate        = false;
+    params.language         = "ja";
+    params.n_threads        = 4;
+    params.offset_ms        = 0;
+    params.duration_ms      = 0;
 
     QObject::connect(thread, &QThread::started, audiotask, [audiotask]() {
         FFmpegFormatConfig config{16000, 1, AV_SAMPLE_FMT_S16};
@@ -55,9 +62,10 @@ int main(int argc, char *argv[]) {
         qDebug() << msg;
         thread->quit();
     });
-    QObject::connect(audiotask, &FFmpegAudioTask::message_finished, [thread]() {
+    QObject::connect(audiotask, &FFmpegAudioTask::message_finished, [thread, whispertask]() {
         /// @todo process error 
         qDebug() << "Decode finished";
+        whispertask->eof();
         thread->quit();
     });
     QObject::connect(whispertask, &WhisperAudioTask::text_transcribed, [whisperthread](const QString& text) {

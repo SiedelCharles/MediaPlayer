@@ -35,6 +35,9 @@ public:
     [[nodiscard]] bool init(const QString& file_path) noexcept;
     bool is_initialized() const noexcept;
 
+    
+    /// @brief Stop receiving data to the buffer
+    virtual void eof() noexcept;
     /// @brief Graceful stop, exit after processing all pending data
     virtual void stop() noexcept;
     /// @brief Stop immediately, exit with discarding pending data
@@ -53,6 +56,7 @@ protected:
     /// @brief path of file, can be an audio or a model 
     QString             _file_path;
     /// @brief control-related params
+    std::atomic<bool>   _atomic_eof{false};
     std::atomic<bool>   _atomic_stop{false};
     std::atomic<bool>   _atomic_cancel{false};
     QWaitCondition      _qcondition_wait;
@@ -88,6 +92,12 @@ inline bool AudioTaskBase::init(const QString &file_path) noexcept
 inline bool AudioTaskBase::is_initialized() const noexcept
 {
     return _atomic_initialized.load(std::memory_order_acquire);
+}
+
+inline void AudioTaskBase::eof() noexcept
+{
+    _atomic_eof.store(true, std::memory_order_release);
+    _qcondition_wait.wakeAll();
 }
 
 inline void AudioTaskBase::stop() noexcept

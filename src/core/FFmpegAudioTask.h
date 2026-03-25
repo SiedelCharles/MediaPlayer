@@ -50,7 +50,7 @@ struct FFmpegFormatConfig{
                 _sample_format == other._sample_format;
     }
     bool operator!=(const FFmpegFormatConfig& other) const {
-        return *this==other;
+        return !(*this==other);
     }
 };
 

@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "cpp-project-manager-configuration",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/audio/include",
+                "D:/QT/QT/6.5.3/msvc2019_64"
+            ],
+            "defines": [],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "${default}",
+            "cStandard": "${default}",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "${default}",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

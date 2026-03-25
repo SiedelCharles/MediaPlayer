@@ -1,5 +1,7 @@
 #include "FFmpegAudioTask.h"
 
+#include <iostream>
+
 #include "QtCore/qdebug.h"
 
 bool FFmpegAudioTask::initialize(const QString &file_path)
@@ -60,7 +62,7 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
     SwrContext *swr_context{nullptr};
     FFmpegFormatConfig destination_config{};
     /// @todo this is error logic. ??
-    if (auto b_result = config == destination_config
+    if (auto b_result = (config == destination_config)
         ; b_result) {
             /// \brief no need for resample
             _swr_context.reset();
@@ -70,11 +72,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 av_channel_layout_default(&destination_layout, config._channel_count);
             } else {
                 destination_layout = _codec_context->ch_layout;
-                destination_config._channel_count = destination_layout.nb_channels;
             }
+            destination_config._channel_count = destination_layout.nb_channels;
             destination_config._sample_rate = config._sample_rate == destination_config._sample_rate ? _codec_context->sample_rate : config._sample_rate;
             destination_config._sample_format = config._sample_format == destination_config._sample_format ? _codec_context->sample_fmt : config._sample_format;
-            
+            std::cout << destination_config._channel_count << ", " << destination_config._sample_rate << std::endl;
             if (auto i_result = swr_alloc_set_opts2(&swr_context,
                 &destination_layout, destination_config._sample_format, destination_config._sample_rate, 
                 &_codec_context->ch_layout, _codec_context->sample_fmt, _codec_context->sample_rate,
@@ -137,7 +139,7 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 int samples = swr_get_out_samples(_swr_context.get(), frame->nb_samples);
                 auto size_buffer = av_samples_get_buffer_size(nullptr, destination_config._channel_count, samples, destination_config._sample_format, 1);
                 if (size_buffer < 0) {
-                    emit_formatted_error("Failed to get buffer size");
+                    // emit_formatted_error("Failed to get buffer size parse1");
                     av_frame_unref(frame.get());
                     break;
                 }
@@ -189,10 +191,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
             int samples = swr_get_out_samples(_swr_context.get(), frame->nb_samples);
             auto size_buffer = av_samples_get_buffer_size(nullptr, destination_config._channel_count, samples, destination_config._sample_format, 1);
             if (size_buffer < 0) {
-                emit_formatted_error("Failed to get buffer size");
+                emit_formatted_error("Failed to get buffer size parse2");
                 av_frame_unref(frame.get());
                 break;
             }
+            std::cout << "at lease successful" <<std::endl;
             if (buffer.size() < static_cast<size_t>(size_buffer)) {
                 buffer.resize(static_cast<size_t>(size_buffer));
             }
