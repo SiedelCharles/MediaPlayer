@@ -47,9 +47,9 @@ public:
     /// @brief get buffer mode  
     AudioTaskBufferRole mode() noexcept;
     /// @brief Graceful stop, exit after processing all pending data
-    void stop() noexcept;
+    virtual void stop() noexcept;
     /// @brief Stop immediately, exit with discarding pending data
-    void cancel() noexcept;
+    virtual void cancel() noexcept;
     /// @brief get data from the buffer
     QList<QByteArray> take_data() noexcept;
     /// @brief append data to the buffer

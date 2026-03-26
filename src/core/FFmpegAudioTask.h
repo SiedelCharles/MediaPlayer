@@ -39,6 +39,7 @@ struct FFmpegFormatConfig{
     int _sample_rate = 0;
     int _channel_count = 0;
     AVSampleFormat _sample_format = AV_SAMPLE_FMT_NONE;
+    std::string _codec_name = "pcm_s16le";
     FFmpegFormatConfig() = default;
     FFmpegFormatConfig(int sample_rate, int channel_count, AVSampleFormat sample_format):_sample_rate(sample_rate), _channel_count(channel_count), _sample_format(sample_format){}
     FFmpegFormatConfig(const FFmpegFormatConfig&) = default;
@@ -64,9 +65,9 @@ public:
     ~FFmpegTaskProcesser() = default;
     virtual void play() = 0;
     virtual bool merge(const std::vector<TimeStampPair>& timestamp_list
-        , const std::vector<FFmpegAudioTask> &input_file, const QString& output_file
+        , const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file
         , const FFmpegFormatConfig& config, FFmpegMergeOption option) = 0;
-    virtual bool encode(const FFmpegFormatConfig& config) = 0;
+    virtual bool encode(const FFmpegFormatConfig& config, const QString& output_file) = 0;
     virtual bool decode(const FFmpegFormatConfig& config, bool is_emit) = 0;
     virtual bool decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) = 0;
     virtual bool transcode(const QString& input_file, const QString& output_file) = 0;
@@ -90,9 +91,9 @@ public:
 
     virtual void play() override;
     virtual bool merge(const std::vector<TimeStampPair>& timestamp_list
-        , const std::vector<FFmpegAudioTask> &input_file, const QString& output_file
+        , const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file
         , const FFmpegFormatConfig& config, FFmpegMergeOption option) override;
-    virtual bool encode(const FFmpegFormatConfig& config);
+    virtual bool encode(const FFmpegFormatConfig& config, const QString& output_file);
     virtual bool decode(const FFmpegFormatConfig& config, bool is_emit) override;
     virtual bool decode(std::function<void(std::span<const uint8_t>)> f_pcmdata) override;
     virtual bool transcode(const QString& input_file, const QString& output_file) override;
@@ -104,12 +105,17 @@ private:
     void emit_formatted_message(const QString& message);
     
     void switch_mode() noexcept;
-    bool merge_mixing(const std::vector<TimeStampPair>& timestamp_list, const std::vector<FFmpegAudioTask> &input_file, const QString& output_file, const FFmpegFormatConfig& config);
+    bool initialize_output(const FFmpegFormatConfig &config, const QString& file_path) noexcept;
+    bool merge_mixing(const std::vector<TimeStampPair>& timestamp_list, const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file, const FFmpegFormatConfig& config);
 
     QString             _file_path{};
-    SwrContextPtr       _swr_context{nullptr};
-    CodecContextPtr     _codec_context{nullptr};
-    FormatContextPtr    _format_context{nullptr};
+    SwrContextPtr       _swr_context_i{nullptr};
+    CodecContextPtr     _codec_context_i{nullptr};
+    FormatContextPtr    _format_context_i{nullptr};
+
+    SwrContextPtr       _swr_context_o{nullptr};
+    CodecContextPtr     _codec_context_o{nullptr};
+    FormatContextPtr    _format_context_o{nullptr};
 
     int                 _stream_index{-1};
     AVRational          _stream_timebase{0,0};
