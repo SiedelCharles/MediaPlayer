@@ -40,9 +40,8 @@ set(WHISPER_LIBS
 set(CORE_SOURCES
     core/FFmpegAudioTask.cpp
     core/FFmpegAudioTask.h
-    core/AudioTaskInterface.cpp
+    # core/AudioTaskInterface.cpp
     core/AudioTaskInterface.h
-    core/AudioTask.h
     core/WhisperAudioTask.cpp
     core/WhisperAudioTask.h
 )

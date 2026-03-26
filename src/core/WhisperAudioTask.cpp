@@ -3,11 +3,11 @@
 
 #include <iostream>
 
-void WhisperAudioTask::transcribe(const QString & file_path, const struct whisper_full_params& full_params, WhisperTranscriptionMode mode) {
+void WhisperAudioTask::transcribe(const struct whisper_full_params& full_params, WhisperTranscriptionMode mode, [[maybe_unused]]const QString& file_path) {
     if (auto b_result = is_initialized()
         ; !b_result) {
         /// @todo emit error
-        std::cout << "uninitialezed" << std::endl;
+        
         return ;
     }
     switch(mode) {
@@ -46,7 +46,6 @@ QVector<float> WhisperAudioTask::convert_to_float32(const QByteArray &pcm_data)
     for (int i = 0; i < sample_count; ++i) {
         pcm_f32.push_back(static_cast<float>(pcm_16[i]) / 32768.0f);
     }
-
     /// @brief use RVC
     return pcm_f32;
 }
@@ -61,7 +60,6 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
 {
     QVector<float> accumulated_data;
     while (true) {
-       QVector<float> current_batch;
         {
             QMutexLocker locker(&_qmutex_buffer);
             while (_data_buffer.isEmpty() && !_atomic_stop.load(std::memory_order_acquire)
@@ -76,14 +74,13 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
             if (_data_buffer.isEmpty()) {
                 break;
             }
-            /// @todo to optimize here
-            for (const QByteArray &data : qAsConst(_data_buffer)) {
-                auto data_float = convert_to_float32(data);
-                current_batch.append(data_float.begin(), data_float.end());
-            }
-            _data_buffer.clear();
         }
-        accumulated_data.append(current_batch);
+        /// @todo to optimize here
+        QList<QByteArray> current_batch = take_data();
+        for (const QByteArray &data : qAsConst(current_batch)) {
+            auto data_float = convert_to_float32(data);
+            accumulated_data.append(data_float.begin(), data_float.end());
+        }
     }
 
     if (auto i_result = whisper_full(_whisper_context, full_params, accumulated_data.data(), accumulated_data.size())
@@ -102,7 +99,6 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
         transcribed_text += QString::fromStdString(timestamp) +  " " + QString::fromUtf8(text) + "\n" ;
     }
     /// @todo emit data
-    // std::cout << transcribed_text.toStdString() << std::endl;
     emit text_transcribed(transcribed_text);
     return ;
 }

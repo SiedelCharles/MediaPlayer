@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     QObject::connect(thread, &QThread::started, whispertask, [whispertask, params]() {
         auto is_init = whispertask->init(model_path);
         if(is_init) {
-            whispertask->transcribe(file_path, params, WhisperTranscriptionMode::Offline);
+            whispertask->transcribe(params, WhisperTranscriptionMode::Offline, file_path);
         } else {
             /// pass or do something
         }

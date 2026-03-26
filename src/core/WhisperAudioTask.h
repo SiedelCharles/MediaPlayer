@@ -1,4 +1,4 @@
-#include "AudioTask.h"
+#include "AudioTaskInterface.h"
 
 extern "C" {
     #include "whisper.h"
@@ -13,7 +13,7 @@ enum class WhisperTranscriptionMode {
 class WhisperTaskProcesser {
 public:
     ~WhisperTaskProcesser() = default;
-    virtual void transcribe(const QString& file_path, const struct whisper_full_params& full_params, WhisperTranscriptionMode mode) = 0;
+    virtual void transcribe(const struct whisper_full_params& full_params, WhisperTranscriptionMode mode, const QString& file_path = QString{}) = 0;
 };
 
 /// @brief This class is used for whisper transcription task
@@ -26,12 +26,13 @@ class WhisperAudioTask : public AudioTaskBase
 signals:
     void text_transcribed(const QString& text);
 public:
-    WhisperAudioTask(QObject* parent = nullptr) noexcept : AudioTaskBase(parent) {};
-    /// @brief transcription using full_whisper, ffline transcription (audio length within tens of minutes, can be loaded at once)
-    /// @param file_path 
-    /// @param full_params
+    WhisperAudioTask(QObject* parent = nullptr) noexcept : AudioTaskBase(AudioTaskBufferRole::Input, parent) {};
+    /// @brief transcription using full_whisper, offline transcription (audio length within tens of minutes, can be loaded at once)
+    /// @param file_path path of output file, now unused
+    /// @param full_params whisper_full_params, here are 53 parameters in it
     /// @details Some parameters in full_params (such as print_realtime, print_progress) may not be applicable in streaming mode.
-    virtual void transcribe(const QString& file_path, const struct whisper_full_params& full_params, WhisperTranscriptionMode mode) override;
+    /// @param mode choose offline, streaming or more type to transcribe
+    virtual void transcribe(const struct whisper_full_params& full_params, WhisperTranscriptionMode mode, [[maybe_unused]]const QString& file_path = QString{}) override;
 protected:
     /// @brief this is default initialize, it does not throw exceptions because the whisper.cpp API is C-style.
     /// @param file_path the path of model

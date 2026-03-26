@@ -1,10 +1,8 @@
 #include "FFmpegAudioTask.h"
+// #include <iostream>
+// #include "QtCore/qdebug.h"
 
-#include <iostream>
-
-#include "QtCore/qdebug.h"
-
-bool FFmpegAudioTask::initialize(const QString &file_path)
+bool FFmpegAudioTask::initialize(const QString &file_path) noexcept
 {
     AVFormatContext *format_context{nullptr};
     if (auto i_result = avformat_open_input(&format_context, file_path.toUtf8().constData(), nullptr, nullptr)
@@ -52,16 +50,19 @@ bool FFmpegAudioTask::initialize(const QString &file_path)
     return true;
 }
 
-void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
+bool FFmpegAudioTask::decode(const FFmpegFormatConfig& config, bool is_emit)
 {
     if (auto b_result = is_initialized()
         ; !b_result) {
         emit_formatted_error("uninitialized");
-        return ;
+        return false;
+    }
+    if (is_eof() || _role_buffer == AudioTaskBufferRole::Input) {
+        emit_formatted_error("buffer unavailable.");
+        return false;
     }
     SwrContext *swr_context{nullptr};
     FFmpegFormatConfig destination_config{};
-    /// @todo this is error logic. ??
     if (auto b_result = (config == destination_config)
         ; b_result) {
             /// \brief no need for resample
@@ -76,19 +77,18 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
             destination_config._channel_count = destination_layout.nb_channels;
             destination_config._sample_rate = config._sample_rate == destination_config._sample_rate ? _codec_context->sample_rate : config._sample_rate;
             destination_config._sample_format = config._sample_format == destination_config._sample_format ? _codec_context->sample_fmt : config._sample_format;
-            std::cout << destination_config._channel_count << ", " << destination_config._sample_rate << std::endl;
             if (auto i_result = swr_alloc_set_opts2(&swr_context,
                 &destination_layout, destination_config._sample_format, destination_config._sample_rate, 
                 &_codec_context->ch_layout, _codec_context->sample_fmt, _codec_context->sample_rate,
                 0, nullptr)
                 ; i_result < 0) {
                 emit_formatted_error("Failed to alloc swr", i_result);
-                return ;
+                return false;
             }
             if (auto i_result = swr_init(swr_context)
             ; i_result < 0) {
                 emit_formatted_error("Failed to init swr", i_result);
-                return ;
+                return false;
             }
         }
     _swr_context.reset(swr_context);
@@ -104,7 +104,7 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
     std::unique_ptr<AVPacket, decltype(PacketDeleter)> packet{av_packet_alloc(), PacketDeleter};
     if(!frame || !packet) {
         emit_formatted_error("Packet and Frames is null");
-        return ;
+        return false;
     }
     std::vector<uint8_t> buffer;
     while(!_atomic_cancel.load(std::memory_order_acquire)) {
@@ -160,7 +160,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 auto size_transmit = av_samples_get_buffer_size(nullptr, destination_config._channel_count, size_converted, destination_config._sample_format, 1);
                 if (size_transmit > 0) {
                     auto sp_data = QSharedPointer<QByteArray>::create(reinterpret_cast<const char*>(buffer.data()), size_transmit);
-                    emit data_ffmpeg(sp_data);
+                    if(is_emit) {
+                        emit data_ffmpeg(sp_data);
+                    } else {
+                        append_data(sp_data);
+                    }
                 }
             } else {
                 /// @brief no need for resample, emit data directly
@@ -172,7 +176,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                     break;
                 }
                 auto sp_data = QSharedPointer<QByteArray>::create(reinterpret_cast<const char*>(frame->data[0]), size_transmit);
-                emit data_ffmpeg(sp_data);
+                if(is_emit) {
+                    emit data_ffmpeg(sp_data);
+                } else {
+                    append_data(sp_data);
+                }
             }
         }
         av_frame_unref(frame.get());
@@ -195,7 +203,6 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 av_frame_unref(frame.get());
                 break;
             }
-            std::cout << "at lease successful" <<std::endl;
             if (buffer.size() < static_cast<size_t>(size_buffer)) {
                 buffer.resize(static_cast<size_t>(size_buffer));
             }
@@ -213,7 +220,11 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
             auto size_transmit = av_samples_get_buffer_size(nullptr, destination_config._channel_count, size_converted, destination_config._sample_format, 1);
             if (size_transmit > 0) {
                 auto sp_data = QSharedPointer<QByteArray>::create(reinterpret_cast<const char*>(buffer.data()), size_transmit);
-                emit data_ffmpeg(sp_data);
+                if(is_emit) {
+                    emit data_ffmpeg(sp_data);
+                } else {
+                    append_data(sp_data);
+                }
             }
         } else {
             /// @brief no need for resample, emit data directly
@@ -225,24 +236,35 @@ void FFmpegAudioTask::decode(const FFmpegFormatConfig& config)
                 break;
             }
             auto sp_data = QSharedPointer<QByteArray>::create(reinterpret_cast<const char*>(frame->data[0]), size_transmit);
-            emit data_ffmpeg(sp_data);
+            if(is_emit) {
+                emit data_ffmpeg(sp_data);
+            } else {
+                append_data(sp_data);
+            }
         }
         av_frame_unref(frame.get());
     }
     /// @todo flush swr_context
     /// @todo emit finish signal;
+    if(!is_emit) {
+        switch_mode();
+        /// @todo notice here
+        _atomic_eof.store(false, std::memory_order_release);
+    }
     emit message_finished();
-    return ;
+    stop();
+    return true;
 }
 
-void FFmpegAudioTask::decode(std::function<void(std::span<const uint8_t>)> f_pcmdata)
+bool FFmpegAudioTask::decode(std::function<void(std::span<const uint8_t>)> f_pcmdata)
 {
-    return ;
+    /// @todo callback function
+    return false;
 }
 
-void FFmpegAudioTask::transcode(const QStringList &input_file, const QString &output_file)
+bool FFmpegAudioTask::transcode(const QString& input_file, const QString& output_file)
 {
-    return ;
+    return false;
 }
 
 void FFmpegAudioTask::play()
@@ -250,19 +272,30 @@ void FFmpegAudioTask::play()
     return ;
 }
 
-void FFmpegAudioTask::merge(const QStringList &input_file, const QString &output_file, Merge_Option option)
+bool FFmpegAudioTask::merge(const std::vector<TimeStampPair> &timestamp_list, const std::vector<FFmpegAudioTask> &input_file, const QString &output_file, const FFmpegFormatConfig& config, FFmpegMergeOption option)
 {
+    bool b_result{false};
     switch(option) {
-        case Merge_Option::MergeConcatenate:
+        case FFmpegMergeOption::MergeConcatenate:
             break;
-        case Merge_Option::MergeInsert:
+        case FFmpegMergeOption::MergeInsert:
             break;
-        case Merge_Option::MergeMixing:
+        case FFmpegMergeOption::MergeMixing:
+            b_result = merge_mixing(timestamp_list, input_file, output_file, config);
             break;
     }
+    return b_result;
 }
 
-void FFmpegAudioTask::encode(const FFmpegFormatConfig &config)
+bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config)
 {
     return ;
+}
+
+bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_list, const std::vector<FFmpegAudioTask> &input_file, const QString &output_file, const FFmpegFormatConfig& config)
+{
+    if (mode() != AudioTaskBufferRole::Input) {
+        emit_formatted_message("not decode yet");
+        return false;
+    }
 }

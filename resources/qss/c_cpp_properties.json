@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/audio/include",
-                "D:/QT/QT/6.5.3/msvc2019_64"
+                "D:/QT/QT/6.5.3/msvc2019_64/include"
             ],
             "defines": [],
             "windowsSdkVersion": "10.0.18362.0",
