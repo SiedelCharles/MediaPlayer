@@ -48,3 +48,6 @@
 
 //     return app.exec();
 // }
+int main() {
+    return 0;
+}

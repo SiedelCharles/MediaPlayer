@@ -60,6 +60,7 @@ enum class FFmpegMergeOption {
     MergeMixing,
     MergeConcatenate,
 };
+class FFmpegAudioTask;
 class FFmpegTaskProcesser {
 public:
     ~FFmpegTaskProcesser() = default;

@@ -1,6 +1,7 @@
 #include "FFmpegAudioTask.h"
 // #include <iostream>
 // #include "QtCore/qdebug.h"
+#include <iostream>
 
 bool FFmpegAudioTask::initialize(const QString &file_path) noexcept
 {
@@ -79,10 +80,9 @@ bool FFmpegAudioTask::initialize_output(const FFmpegFormatConfig &config, const 
         emit_formatted_error("Failed to allocate codec context");
         return false;
     }
-    _codec_context_i.reset(codec_context);
+    _codec_context_o.reset(codec_context);
 
     _codec_context_o->sample_rate = config._sample_rate;
-    _codec_context_o->ch_layout.nb_channels = config._channel_count;
     av_channel_layout_default(&_codec_context_o->ch_layout, config._channel_count);
     /// @brief in case there is no sample_format
     _codec_context_o->sample_fmt = codec->sample_fmts ? codec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
@@ -104,6 +104,7 @@ bool FFmpegAudioTask::initialize_output(const FFmpegFormatConfig &config, const 
         emit_formatted_error("Failed to copy codec parameters", i_result);
         return false;
     }
+    stream->time_base = _codec_context_o->time_base;
 
     if (!(_format_context_o->oformat->flags & AVFMT_NOFILE)) {
         if( auto i_reslut = avio_open(&_format_context_o->pb, file_path.toUtf8().constData(), AVIO_FLAG_WRITE)
@@ -312,13 +313,12 @@ bool FFmpegAudioTask::decode(const FFmpegFormatConfig& config, bool is_emit)
     }
     /// @todo flush swr_context
     /// @todo emit finish signal;
-    if(!is_emit) {
-        switch_mode();
-        /// @todo notice here
-        eof();
-    }
+    // if(!is_emit) {
+    //     switch_mode();
+    //     /// @todo notice here
+    //     eof();
+    // }
     emit message_finished();
-    stop();
     return true;
 }
 
@@ -330,6 +330,8 @@ bool FFmpegAudioTask::decode(std::function<void(std::span<const uint8_t>)> f_pcm
 
 bool FFmpegAudioTask::transcode(const QString& input_file, const QString& output_file)
 {
+    /// decode
+    /// encode
     return false;
 }
 
@@ -360,6 +362,11 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
         emit_formatted_error("Output file failed to initialized");
         return false;
     }
+
+    if (auto i_result = avformat_write_header(_format_context_o.get(), nullptr); i_result < 0) {
+        emit_formatted_error("Failed to write header", i_result);
+        return false;
+    }
     /// @todo complete here
     // if (is_eof() || _role_buffer == AudioTaskBufferRole::Input) {
     //     emit_formatted_error("buffer unavailable.");
@@ -379,6 +386,11 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
     std::unique_ptr<AVFrame, decltype(FrameDeleter)> frame{av_frame_alloc(), FrameDeleter};
     std::unique_ptr<AVPacket, decltype(PacketDeleter)> packet{av_packet_alloc(), PacketDeleter};
 
+    if(!frame || !packet) {
+        emit_formatted_error("Packet and Frames is null");
+        return false;
+    }
+
     int frame_size = _codec_context_o->frame_size;
     if (frame_size <= 0) frame_size = 1024;
 
@@ -386,6 +398,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
     frame->ch_layout = _codec_context_o->ch_layout;
     frame->sample_rate = _codec_context_o->sample_rate;
     frame->nb_samples = frame_size;
+    frame->time_base = _codec_context_o->time_base;
 
     av_frame_get_buffer(frame.get(), 0);
 
@@ -394,7 +407,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
     QByteArray pcm16;
     for (const QByteArray& chunk : pcm_data) {
         total_bytes += chunk.size();
-        pcm16.append(chunk.begin());
+        pcm16.append(chunk);
     }
     /// @todo complete here
     const int bytes_per_sample = 2;
@@ -402,8 +415,6 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
     int channels = _codec_context_o->ch_layout.nb_channels;
     int64_t total_samples_per_channel = total_samples_all_channels / channels;
     int64_t sample_offset = 0;
-
-    auto pcm_data = take_data();
 
 
     auto index = _format_context_o->nb_streams - 1;
@@ -458,7 +469,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
 
     av_write_trailer(_format_context_o.get());
 
-    emit message_finished();
+    // emit message_finished();
     return true;
 }
 
@@ -470,5 +481,5 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
     if (timestamp_list.size() != input_file.size()) {
         return false;
     }
-    
+    return false;
 }
