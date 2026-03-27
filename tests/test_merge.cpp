@@ -19,7 +19,7 @@
 
 const QString file_path = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\QT\\AudioPlayer\\resource\\05_妹の登校日.wav";
 const QString file_path_timestamp = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\MediaPlayer\\resources\\tests\\yuri05_timestamp.txt";
-const QString output_file = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\MediaPlayer\\resources\\tests\\yuri05_combination.txt";
+const QString output_file = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\MediaPlayer\\resources\\tests\\yuri05_combination.wav";
 const QString file_path_test = "D:\\VisualStudio_Created\\VisualStudio_Project\\Projects\\QT\\AudioPlayer\\resource\\05_妹の登校日test.wav";
 
 
@@ -38,12 +38,12 @@ int main(int argc, char *argv[]) {
         py::module_ s_script = py::module::import("synthesis_script");
         std::string audio_path = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/sample_astesia.wav";
         std::string text_path = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_translated.txt";
-        std::string output_path_base = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/";
+        std::string output_path_base = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_";
         std::string voice_name = "MissAstesia";
         
-        std::string voice_id = upload_custom_voice(s_script, audio_path, voice_name);
-        if(!voice_id.empty())  {
-            std::cout << "voice_id:" << voice_id << std::endl;
+        // std::string voice_id = upload_custom_voice(s_script, audio_path, voice_name);
+        // if(!voice_id.empty())  {
+        //     std::cout << "voice_id:" << voice_id << std::endl;
             std::ifstream ifs(text_path);
             std::string line;
             int index = 0;
@@ -52,13 +52,13 @@ int main(int argc, char *argv[]) {
                 output_path_base + std::to_string(index) + ".wav";
                 file_vec.emplace_back(output_path);
                 index++;
-                auto result = synthesize_with_custom_voice(s_script, voice_id, "line"
-                , output_path
-                , "娇羞", 16000, 0.6);
+                // auto result = synthesize_with_custom_voice(s_script, voice_id, line
+                // , output_path
+                // , "娇羞", 16000, 0.6);
             }
-        } else {
-            std::cout << "Failed to upload custom voice" << std::endl;
-        }
+        // } else {
+        //     std::cout << "Failed to upload custom voice" << std::endl;
+        // }
     } catch (const py::error_already_set& e) {
         std::cerr <<  e.what() << std::endl;
         return 1;

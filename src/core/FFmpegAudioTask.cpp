@@ -487,10 +487,12 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
     for (const QByteArray& chunk : pcm_data) {
         pcm16.append(chunk);
     }
+    std::cout << pcm16.size() / sizeof(int16_t) << std::endl;
     auto *p_pcmdata = reinterpret_cast<int16_t*>(pcm16.data());
+    size_t total_samples = pcm16.size() / sizeof(int16_t);
     for (auto i = 0; i < timestamp_list.size(); ++i) {
         auto audiotask = FFmpegAudioTask{};
-        if (auto b_result = audiotask.init(QString::fromStdString(input_file.at(0)))
+        if (auto b_result = audiotask.init(QString::fromStdString(input_file.at(i)))
         ; !b_result) {
             continue;
         }
@@ -502,20 +504,23 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
         
         auto data = audiotask.take_data();
         QByteArray cur_pcm_data;
-        for (const QByteArray& chunk : pcm_data) {
+        for (const QByteArray& chunk : data) {
             cur_pcm_data.append(chunk);
         }
         auto *p_curpcmdata = reinterpret_cast<int16_t*>(cur_pcm_data.data());
+        size_t cur_samples = cur_pcm_data.size() / sizeof(int16_t);
 
         auto timestamp1  = timestamp_list.at(i).timestamp1;
         auto timestamp2  = timestamp_list.at(i).timestamp2;
 
+        std::cout << timestamp1.milliseconds() << ", " << timestamp2.milliseconds() << std::endl;
         auto converted_time1 = static_cast<size_t>(timestamp1.milliseconds() * config._sample_rate / 1000 * config._channel_count);
         auto converted_time2 = static_cast<size_t>(timestamp2.milliseconds() * config._sample_rate / 1000 * config._channel_count);
 
-        for (size_t j = converted_time1; j < converted_time2 && j < data.size(); ++j) {
+
+        for (size_t j = converted_time1; j < converted_time2 && j < total_samples; ++j) {
             size_t src_idx = j - converted_time1;
-            if (src_idx >= _data_buffer.size()) break;
+            if (src_idx >= cur_samples) break;
 
             /// @brief in case overflow
             int32_t mixed = static_cast<int32_t>(p_pcmdata[j]) + static_cast<int32_t>(p_curpcmdata[src_idx]);
@@ -525,7 +530,7 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
             p_pcmdata[j] = static_cast<int16_t>(mixed);
         }
     }
-    QByteArray array_pcmdata(reinterpret_cast<const char*>(pcm_data.data()), pcm_data.size() * 2);
+    QByteArray array_pcmdata(reinterpret_cast<const char*>(p_pcmdata), pcm16.size());
     append_data(array_pcmdata);
 
     auto is_encode = encode(config, output_file);

@@ -95,7 +95,7 @@ void WhisperAudioTask::transcribe_offline(const QString &file_path, const whispe
         int64_t t0 = whisper_full_get_segment_t0(_whisper_context, i);
         int64_t t1 = whisper_full_get_segment_t1(_whisper_context, i);
         /// @todo related to timestamp part in utils
-        std::string timestamp = convert_to_srt_timestamp(t0, t1);
+        std::string timestamp = convert_to_srt_timestamp(t0*10, t1*10);
         transcribed_text += QString::fromStdString(timestamp) +  " " + QString::fromUtf8(text) + "\n" ;
     }
     /// @todo emit data

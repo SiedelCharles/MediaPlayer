@@ -58,3 +58,4 @@
     原因:ython.h 与 Qt 头文件冲突（slots 宏定义）
 14. 未知工具 "github/issue_read"
     把github删了
+15. 在merge过程中出现问题,导致输出文件为空
