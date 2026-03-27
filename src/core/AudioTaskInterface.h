@@ -13,11 +13,15 @@
 constexpr size_t AV_ERROR_MAX_BUFFER_SIZE = 64;
 
 /// @brief Mode used to distinguish buffers.
-enum class AudioTaskBufferRole {
+enum class AudioTaskBufferType {
     Default = -1,
     Input = 0,  ///< input type
     Output = 1 ///< output type
 };
+
+// class AbstractAudioTask {
+
+// };
 
 /// @brief This class handles audio tasks, binds to a specific file type upon initialization and provides a data buffer
 class AudioTaskBase : public QObject
@@ -26,7 +30,7 @@ class AudioTaskBase : public QObject
 signals:
     void message_finished();
 public:
-    explicit AudioTaskBase(AudioTaskBufferRole type = AudioTaskBufferRole::Default, QObject* parent = nullptr) noexcept : QObject(parent), _role_buffer(type) {};
+    explicit AudioTaskBase(AudioTaskBufferType type = AudioTaskBufferType::Default, QObject* parent = nullptr) noexcept : QObject(parent), _role_buffer(type) {};
     ~AudioTaskBase() override = default;
 
     /// @brief Explicitly delete copy constructor, copy assignment, move constructor, and move assignment
@@ -45,7 +49,7 @@ public:
     void eof() noexcept;
     bool is_eof() noexcept;
     /// @brief get buffer mode  
-    AudioTaskBufferRole mode() noexcept;
+    AudioTaskBufferType mode() noexcept;
     /// @brief Graceful stop, exit after processing all pending data
     virtual void stop() noexcept;
     /// @brief Stop immediately, exit with discarding pending data
@@ -69,7 +73,7 @@ protected:
     std::atomic<bool>   _atomic_eof{false};
     std::atomic<bool>   _atomic_stop{false};
     std::atomic<bool>   _atomic_cancel{false};
-    AudioTaskBufferRole _role_buffer;
+    AudioTaskBufferType _role_buffer;
     QWaitCondition      _qcondition_wait;
     /// @brief buffer-related params
     QMutex              _qmutex_buffer;
@@ -121,7 +125,7 @@ inline void AudioTaskBase::stop() noexcept
     _qcondition_wait.wakeAll();
 }
 
-inline AudioTaskBufferRole AudioTaskBase::mode() noexcept
+inline AudioTaskBufferType AudioTaskBase::mode() noexcept
 {
     return _role_buffer;
 }

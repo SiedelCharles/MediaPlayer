@@ -27,7 +27,7 @@ class WhisperAudioTask : public AudioTaskBase
 signals:
     void text_transcribed(const QString& text);
 public:
-    WhisperAudioTask(QObject* parent = nullptr) noexcept : AudioTaskBase(AudioTaskBufferRole::Input, parent) {};
+    WhisperAudioTask(QObject* parent = nullptr) noexcept : AudioTaskBase(AudioTaskBufferType::Input, parent) {};
     /// @brief transcription using full_whisper, offline transcription (audio length within tens of minutes, can be loaded at once)
     /// @param file_path path of output file, now unused
     /// @param full_params whisper_full_params, here are 53 parameters in it

@@ -1,14 +1,20 @@
-#include <windows.h>
+#include "mainwindow.h"
 
-#include "FFmpegAudioTask.h"
-
-#include <iostream>
-#include <filesystem>
+#include "QtCore/qfile.h"
+#include "QtCore/qdebug.h"
+#include "QtWidgets/qapplication.h"
 
 int main(int argc, char *argv[])
 {
-    AddDllDirectory(L"D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/bin/qt");
-    AddDllDirectory(L"D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/bin/ffmpeg");
-    std::cout << "main is execute." << std::endl;
-    return 0;
+    QApplication a(argc, argv);
+    MainWindow w;
+    // QFile File_qss(":/qss/stylesheet1.qss");
+    // if(!File_qss.open(QFile::ReadOnly)) {
+    //     qDebug() << "Failed to open the stylesheet of qss.";
+    //     return -1;
+    // }
+    // QString Style_stylesheet = File_qss.readAll();
+    // w.setStyleSheet(Style_stylesheet);
+    w.show();
+    return a.exec();
 }

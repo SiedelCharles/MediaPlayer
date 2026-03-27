@@ -17,9 +17,9 @@ int main() {
         sys.attr("path").attr("append")(script_dir);
         py::module_ s_script = py::module::import("translate_script");
 
-        std::string s1 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05.txt";
-        std::string s2 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_timestamp.txt";
-        std::string s3 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_text.txt";
+        std::string s1 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/prime_context.txt";
+        std::string s2 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/prime_context_timestamp.txt";
+        std::string s3 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/prime_context_text.txt";
         auto b_result = process_srt(s_script, s1, s2, s3);
         if(!b_result) {
             std::cout << "error" << std::endl;

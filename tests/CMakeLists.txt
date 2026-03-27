@@ -55,6 +55,13 @@ target_include_directories(test_merge1 PUBLIC
 )
 target_link_libraries(test_merge1 PRIVATE core scripts)
 
+add_executable(test_merge2 test_merge2.cpp)
+target_include_directories(test_merge2 PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/core
+    ${CMAKE_SOURCE_DIR}/src/scripts
+)
+target_link_libraries(test_merge2 PRIVATE core scripts)
+
 add_executable(test_utils test_utils.cpp)
 target_include_directories(test_utils PUBLIC
     ${CMAKE_SOURCE_DIR}/src/core
@@ -69,3 +76,5 @@ add_test(NAME TestWhisper COMMAND $<TARGET_FILE:test_whisper>)
 add_test(NAME TestEncoder COMMAND $<TARGET_FILE:test_decoder>)
 add_test(NAME TestMerge1  COMMAND $<TARGET_FILE:test_merge1>)
 add_test(NAME TestUtils  COMMAND $<TARGET_FILE:test_utils>)
+# add_test(NAME TestMerge1  COMMAND $<TARGET_FILE:test_merge1>)
+add_test(NAME TestMerge2  COMMAND $<TARGET_FILE:test_merge2>)

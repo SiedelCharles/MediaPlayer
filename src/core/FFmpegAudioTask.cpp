@@ -3,6 +3,8 @@
 // #include "QtCore/qdebug.h"
 #include <iostream>
 
+constexpr double merge_gain = 0.05;
+
 bool FFmpegAudioTask::initialize(const QString &file_path) noexcept
 {
     AVFormatContext *format_context{nullptr};
@@ -124,7 +126,7 @@ bool FFmpegAudioTask::decode(const FFmpegFormatConfig& config, bool is_emit)
         emit_formatted_error("uninitialized");
         return false;
     }
-    if (is_eof() || _role_buffer == AudioTaskBufferRole::Input) {
+    if (is_eof() || _role_buffer == AudioTaskBufferType::Input) {
         emit_formatted_error("buffer unavailable.");
         return false;
     }
@@ -368,7 +370,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
         return false;
     }
     /// @todo complete here
-    // if (is_eof() || _role_buffer == AudioTaskBufferRole::Input) {
+    // if (is_eof() || _role_buffer == AudioTaskBufferType::Input) {
     //     emit_formatted_error("buffer unavailable.");
     //     return false;
     // }
@@ -475,7 +477,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
 
 bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::string> &input_file, const QString &output_file, const FFmpegFormatConfig& config)
 {
-    if (mode() != AudioTaskBufferRole::Output) {
+    if (mode() != AudioTaskBufferType::Output) {
         return false;
     }
     if (timestamp_list.size() != input_file.size()) {
@@ -523,7 +525,7 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
             if (src_idx >= cur_samples) break;
 
             /// @brief in case overflow
-            int32_t mixed = static_cast<int32_t>(p_pcmdata[j]) + static_cast<int32_t>(p_curpcmdata[src_idx]);
+            int32_t mixed = static_cast<int32_t>(p_pcmdata[j]) + static_cast<int32_t>(p_curpcmdata[src_idx]*merge_gain);
             mixed = std::clamp(mixed, 
                                static_cast<int32_t>(std::numeric_limits<int16_t>::min()), 
                                static_cast<int32_t>(std::numeric_limits<int16_t>::max()));

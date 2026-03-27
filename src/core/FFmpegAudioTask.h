@@ -87,7 +87,7 @@ signals:
     void error_ffmpeg(const QString& msg);
     void message_ffmpeg(const QString& msg);
 public:
-    explicit FFmpegAudioTask(QObject* parent = nullptr, AudioTaskBufferRole type = AudioTaskBufferRole::Output) noexcept : AudioTaskBase(type, parent) {};
+    explicit FFmpegAudioTask(QObject* parent = nullptr, AudioTaskBufferType type = AudioTaskBufferType::Output) noexcept : AudioTaskBase(type, parent) {};
     ~FFmpegAudioTask() {cleanup_data();};
 
     virtual void play() override;
@@ -138,9 +138,9 @@ inline void FFmpegAudioTask::emit_formatted_message(const QString &message)
     emit message_ffmpeg(message);
 }
 inline void FFmpegAudioTask::switch_mode() noexcept {
-    if (_role_buffer == AudioTaskBufferRole::Input) {
-        _role_buffer = AudioTaskBufferRole::Output;
-    } else  if (_role_buffer == AudioTaskBufferRole::Output) {
-        _role_buffer = AudioTaskBufferRole::Input;
+    if (_role_buffer == AudioTaskBufferType::Input) {
+        _role_buffer = AudioTaskBufferType::Output;
+    } else  if (_role_buffer == AudioTaskBufferType::Output) {
+        _role_buffer = AudioTaskBufferType::Input;
     }
 }
