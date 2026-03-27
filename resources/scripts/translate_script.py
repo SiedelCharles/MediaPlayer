@@ -2,6 +2,7 @@ import re
 from openai import OpenAI
 
 def process_srt(source_file, output_file1, output_file2):
+    # print(source_file)
     pattern = re.compile(r'^\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}\]\s*')
     with open(source_file, 'r', encoding='utf-8') as fin, \
          open(output_file1, 'a', encoding='utf-8') as fout1, \

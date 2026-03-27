@@ -13,6 +13,7 @@ bool process_srt(py::module_& s_script, const std::string &source_file, const st
         func(source_file, output_file1, output_file2);
         return true;
     } catch (const py::error_already_set& e) {
+        std::cerr << "Python error: " << e.what() << "\n";
         return false;
     }
 }

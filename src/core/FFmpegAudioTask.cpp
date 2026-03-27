@@ -340,7 +340,7 @@ void FFmpegAudioTask::play()
     return ;
 }
 
-bool FFmpegAudioTask::merge(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString &output_file, const FFmpegFormatConfig& config, FFmpegMergeOption option)
+bool FFmpegAudioTask::merge(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::string> &input_file, const QString &output_file, const FFmpegFormatConfig& config, FFmpegMergeOption option)
 {
     bool b_result{false};
     switch(option) {
@@ -473,7 +473,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
     return true;
 }
 
-bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString &output_file, const FFmpegFormatConfig& config)
+bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::string> &input_file, const QString &output_file, const FFmpegFormatConfig& config)
 {
     if (mode() != AudioTaskBufferRole::Output) {
         return false;
@@ -481,5 +481,57 @@ bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_l
     if (timestamp_list.size() != input_file.size()) {
         return false;
     }
-    return false;
+    /// @todo check out the buffer of 'this' 
+    auto pcm_data = take_data();
+    QByteArray pcm16;
+    for (const QByteArray& chunk : pcm_data) {
+        pcm16.append(chunk);
+    }
+    auto *p_pcmdata = reinterpret_cast<int16_t*>(pcm16.data());
+    for (auto i = 0; i < timestamp_list.size(); ++i) {
+        auto audiotask = FFmpegAudioTask{};
+        if (auto b_result = audiotask.init(QString::fromStdString(input_file.at(0)))
+        ; !b_result) {
+            continue;
+        }
+        if(auto is_decoded = audiotask.decode(FFmpegFormatConfig{config._sample_rate, config._channel_count, config._sample_format}, false)
+            ; !is_decoded) {
+                audiotask.cleanup_data();
+                continue;
+        }
+        
+        auto data = audiotask.take_data();
+        QByteArray cur_pcm_data;
+        for (const QByteArray& chunk : pcm_data) {
+            cur_pcm_data.append(chunk);
+        }
+        auto *p_curpcmdata = reinterpret_cast<int16_t*>(cur_pcm_data.data());
+
+        auto timestamp1  = timestamp_list.at(i).timestamp1;
+        auto timestamp2  = timestamp_list.at(i).timestamp2;
+
+        auto converted_time1 = static_cast<size_t>(timestamp1.milliseconds() * config._sample_rate / 1000 * config._channel_count);
+        auto converted_time2 = static_cast<size_t>(timestamp2.milliseconds() * config._sample_rate / 1000 * config._channel_count);
+
+        for (size_t j = converted_time1; j < converted_time2 && j < data.size(); ++j) {
+            size_t src_idx = j - converted_time1;
+            if (src_idx >= _data_buffer.size()) break;
+
+            /// @brief in case overflow
+            int32_t mixed = static_cast<int32_t>(p_pcmdata[j]) + static_cast<int32_t>(p_curpcmdata[src_idx]);
+            mixed = std::clamp(mixed, 
+                               static_cast<int32_t>(std::numeric_limits<int16_t>::min()), 
+                               static_cast<int32_t>(std::numeric_limits<int16_t>::max()));
+            p_pcmdata[j] = static_cast<int16_t>(mixed);
+        }
+    }
+    QByteArray array_pcmdata(reinterpret_cast<const char*>(pcm_data.data()), pcm_data.size() * 2);
+    append_data(array_pcmdata);
+
+    auto is_encode = encode(config, output_file);
+    if (!is_encode) {
+        std::cout << "encode error in merge" << std::endl;
+    }
+    std::cout << "merge succeed" << std::endl;
+    return true;
 }

@@ -17,16 +17,16 @@ int main() {
         sys.attr("path").attr("append")(script_dir);
         py::module_ s_script = py::module::import("translate_script");
 
-        std::string s1 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/test_script1.txt";
-        std::string s2 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/test_script1_translated.txt";
-        auto b_result = translate(s_script, s1, s2);
+        std::string s1 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05.txt";
+        std::string s2 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_timestamp.txt";
+        std::string s3 = "D:/VisualStudio_Created/VisualStudio_Project/Projects/MediaPlayer/resources/tests/yuri05_text.txt";
+        auto b_result = process_srt(s_script, s1, s2, s3);
         if(!b_result) {
             std::cout << "error" << std::endl;
         }
     } catch (const py::error_already_set& e) {
-        std::cerr << "导入模块失败: " << e.what() << std::endl;
+        std::cerr << "Fialed to import module: " << e.what() << std::endl;
         return 1;
     }
-    // Py_Finalize();
     return 0;
 }

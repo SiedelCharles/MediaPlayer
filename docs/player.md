@@ -54,3 +54,7 @@
     原因:未调用whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
 12. encode时报错除以零
     原因:没有写文件头
+13. object.h报错,变量 "PyObject" 不是类型名
+    原因:ython.h 与 Qt 头文件冲突（slots 宏定义）
+14. 未知工具 "github/issue_read"
+    把github删了

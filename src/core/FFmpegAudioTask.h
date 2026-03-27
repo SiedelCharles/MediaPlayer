@@ -66,7 +66,7 @@ public:
     ~FFmpegTaskProcesser() = default;
     virtual void play() = 0;
     virtual bool merge(const std::vector<TimeStampPair>& timestamp_list
-        , const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file
+        , const std::vector<std::string> &input_file, const QString& output_file
         , const FFmpegFormatConfig& config, FFmpegMergeOption option) = 0;
     virtual bool encode(const FFmpegFormatConfig& config, const QString& output_file) = 0;
     virtual bool decode(const FFmpegFormatConfig& config, bool is_emit) = 0;
@@ -92,7 +92,7 @@ public:
 
     virtual void play() override;
     virtual bool merge(const std::vector<TimeStampPair>& timestamp_list
-        , const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file
+        , const std::vector<std::string> &input_file, const QString& output_file
         , const FFmpegFormatConfig& config, FFmpegMergeOption option) override;
     virtual bool encode(const FFmpegFormatConfig& config, const QString& output_file);
     virtual bool decode(const FFmpegFormatConfig& config, bool is_emit) override;
@@ -107,7 +107,7 @@ private:
     
     void switch_mode() noexcept;
     bool initialize_output(const FFmpegFormatConfig &config, const QString& file_path) noexcept;
-    bool merge_mixing(const std::vector<TimeStampPair>& timestamp_list, const std::vector<std::unique_ptr<FFmpegAudioTask>> &input_file, const QString& output_file, const FFmpegFormatConfig& config);
+    bool merge_mixing(const std::vector<TimeStampPair>& timestamp_list, const std::vector<std::string> &input_file, const QString& output_file, const FFmpegFormatConfig& config);
 
     QString             _file_path{};
     SwrContextPtr       _swr_context_i{nullptr};
