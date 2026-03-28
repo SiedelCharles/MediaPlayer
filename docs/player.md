@@ -59,3 +59,5 @@
 14. 未知工具 "github/issue_read"
     把github删了
 15. 在merge过程中出现问题,导致输出文件为空
+    时间戳的问题
+16. Qt应用程序无法找到 Windows 平台插件

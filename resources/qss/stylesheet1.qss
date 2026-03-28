@@ -1,0 +1,85 @@
+﻿MainWindow {
+    background-color:#CCCCFF;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: #6666CC;
+}
+
+WidgetTitle {
+    background-color: #9999FF;
+    border-style:solid;
+    border-width: 2px;
+    border-color: #6666CC;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+WidgetTitle QPushButton{
+    background-color: #6666CC;
+    border-style:outset;
+    border-width: 2px;
+    border-color: #333399;
+    border-radius: 2px;
+}
+
+QPushButton:focus {
+    /* background-color: #333399;
+    border-style: inset;
+    border-width: 2px;
+    border-color: #6666CC;
+    border-radius: 2px; */
+    outline: none;
+}
+QPushButton:pressed {
+    background-color: #333399;
+    border-style: inset;
+    border-width: 2px;
+    border-color: #6666CC;
+    border-radius: 2px;
+}
+
+#label_test1 {
+    background-color: #FFC0CB;
+}
+
+#label_test2 {
+    background-color: #FFE6F0;
+}
+
+#SideMenu {
+    background-color: #FFE6F0;
+    border-bottom-left-radius: 10px;
+    margin-left:2px;
+    margin-bottom: 2px;
+    border-style: solid;
+    border-color: #FFC0CB;
+    border-width: 2px;
+}
+
+/* #SideMenu::item:selected {
+    background-color: #FFC0CB;
+}
+#SideMenu::item:hover {
+    background-color: #FFC0CB;
+} */
+
+#DisplayDialog{
+    background-color: #FFE6F0;
+    border-bottom-right-radius: 10px;
+    margin-right:2px;
+    margin-bottom: 2px;
+    border-style: solid;
+    border-color: #FFC0CB;
+    border-width: 2px;
+}
+
+/* #PageForTranscription{
+    background-color: red;
+}
+#PageForTranslation{
+    background-color: green;
+}
+#PageForSynthesis{
+    background-color: blue;
+} */

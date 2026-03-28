@@ -1,25 +1,25 @@
 <RCC>
     <qresource prefix="/">
-        <file>qss/stylesheet1.qss</file>
-        <file>resource/88483602_p0_master1200.jpg</file>
-        <file>resource/106463957_p0_master1200.jpg</file>
-        <file>resource/a8ea9ec0gy1i3a695mlw4j20yq0yq10b.jpg</file>
-        <file>resource/a8ea9ec0gy1i3a6959bl3j20yq0yqdol.jpg</file>
-        <file>resource/76878296_p0_master1200.jpg</file>
-        <file>resource/77489451_p0_master1200.jpg</file>
-        <file>resource/98622613_p0_master1200.jpg</file>
-        <file>resource/101904007_p0.jpg</file>
-        <file>resource/106915662_p0_master1200.jpg</file>
-        <file>resource/112343051_p0_master1200.jpg</file>
-        <file>resource/115921744_p0_master1200.jpg</file>
-        <file>resource/127753151_p0_master1200.jpg</file>
-        <file>resource/130180068_p0_master1200.jpg</file>
-        <file>resource/133173314_p0_master1200.jpg</file>
-        <file>resource/133338121_p0_master1200.jpg</file>
-        <file>resource/133397324_p0_master1200.jpg</file>
-        <file>resource/133638851_p0_master1200.jpg</file>
-        <file>resource/140713944_p0_master1200.jpg</file>
-        <file>resource/141795990_p0_master1200.jpg</file>
-        <file>resource/processed1.jpg</file>
+        <file>../../resources/qss/stylesheet1.qss</file>
+        <file>../../resources/pictures/88483602_p0_master1200.jpg</file>
+        <file>../../resources/pictures/106463957_p0_master1200.jpg</file>
+        <file>../../resources/pictures/a8ea9ec0gy1i3a695mlw4j20yq0yq10b.jpg</file>
+        <file>../../resources/pictures/a8ea9ec0gy1i3a6959bl3j20yq0yqdol.jpg</file>
+        <file>../../resources/pictures/76878296_p0_master1200.jpg</file>
+        <file>../../resources/pictures/77489451_p0_master1200.jpg</file>
+        <file>../../resources/pictures/98622613_p0_master1200.jpg</file>
+        <file>../../resources/pictures/101904007_p0.jpg</file>
+        <file>../../resources/pictures/106915662_p0_master1200.jpg</file>
+        <file>../../resources/pictures/112343051_p0_master1200.jpg</file>
+        <file>../../resources/pictures/115921744_p0_master1200.jpg</file>
+        <file>../../resources/pictures/127753151_p0_master1200.jpg</file>
+        <file>../../resources/pictures/130180068_p0_master1200.jpg</file>
+        <file>../../resources/pictures/133173314_p0_master1200.jpg</file>
+        <file>../../resources/pictures/133338121_p0_master1200.jpg</file>
+        <file>../../resources/pictures/133397324_p0_master1200.jpg</file>
+        <file>../../resources/pictures/133638851_p0_master1200.jpg</file>
+        <file>../../resources/pictures/140713944_p0_master1200.jpg</file>
+        <file>../../resources/pictures/141795990_p0_master1200.jpg</file>
+        <file>../../resources/pictures/processed1.jpg</file>
     </qresource>
 </RCC>
