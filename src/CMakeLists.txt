@@ -63,53 +63,53 @@ target_link_libraries(core
 )
 
 
-set(GUI_SOURCES
-        # gui/main.cpp
-    gui/mainwindow.cpp
-    gui/widgettitle.cpp
-    gui/widgetside.cpp
-    gui/itemsidelistwidget.cpp
-    gui/stackwidgetfordisplay.cpp
-    gui/delegateside.cpp
-    gui/pagedisplay.cpp
-    gui/pagetranscription.cpp
-    gui/pagetranslation.cpp
-    gui/pagesynthesis.cpp
-    gui/filetreeitem.cpp
-    gui/filetreewidget.cpp
-    gui/mainwindow.h
-    gui/widgettitle.h
-    gui/widgetside.h
-    gui/itemsidelistwidget.h
-    gui/setting.h
-    gui/stackwidgetfordisplay.h
-    gui/delegateside.h
-    gui/pagedisplay.h
-    gui/pagetranscription.h
-    gui/pagetranslation.h
-    gui/pagesynthesis.h
-    gui/filetreeitem.h
-    gui/filetreewidget.h
-    gui/filetreewidget.h
-    gui/filetreethread.cpp
-    gui/filetreethread.h
-    gui/audioplaypage.cpp
-    gui/audioplaypage.h
-    gui/audioplaythread.cpp
-    gui/audioplaythread.h
-    gui/transcriptionthread.cpp
-    gui/transcriptionthread.h
-    gui/transcriptiondecodethread.cpp
-    gui/transcriptiondecodethread.h
-    gui/synthesismergethread.cpp
-    gui/synthesismergethread.h
-    gui/resource.qrc
-)
-add_library(gui STATIC ${GUI_SOURCES})
-target_include_directories(gui PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui
-)
-target_link_libraries(gui PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia)
+# set(GUI_SOURCES
+#         # gui/main.cpp
+#     gui/mainwindow.cpp
+#     gui/widgettitle.cpp
+#     gui/widgetside.cpp
+#     gui/itemsidelistwidget.cpp
+#     gui/stackwidgetfordisplay.cpp
+#     gui/delegateside.cpp
+#     gui/pagedisplay.cpp
+#     gui/pagetranscription.cpp
+#     gui/pagetranslation.cpp
+#     gui/pagesynthesis.cpp
+#     gui/filetreeitem.cpp
+#     gui/filetreewidget.cpp
+#     gui/mainwindow.h
+#     gui/widgettitle.h
+#     gui/widgetside.h
+#     gui/itemsidelistwidget.h
+#     gui/setting.h
+#     gui/stackwidgetfordisplay.h
+#     gui/delegateside.h
+#     gui/pagedisplay.h
+#     gui/pagetranscription.h
+#     gui/pagetranslation.h
+#     gui/pagesynthesis.h
+#     gui/filetreeitem.h
+#     gui/filetreewidget.h
+#     gui/filetreewidget.h
+#     gui/filetreethread.cpp
+#     gui/filetreethread.h
+#     gui/audioplaypage.cpp
+#     gui/audioplaypage.h
+#     gui/audioplaythread.cpp
+#     gui/audioplaythread.h
+#     gui/transcriptionthread.cpp
+#     gui/transcriptionthread.h
+#     gui/transcriptiondecodethread.cpp
+#     gui/transcriptiondecodethread.h
+#     gui/synthesismergethread.cpp
+#     gui/synthesismergethread.h
+#     gui/resource.qrc
+# )
+# add_library(gui STATIC ${GUI_SOURCES})
+# target_include_directories(gui PUBLIC
+#     ${CMAKE_CURRENT_SOURCE_DIR}/gui
+# )
+# target_link_libraries(gui PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia)
 
 set(SCRIPTS_SOURCES
     scripts/translate_script.cpp

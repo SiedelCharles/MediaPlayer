@@ -126,7 +126,7 @@ bool FFmpegAudioTask::decode(const FFmpegFormatConfig& config, bool is_emit)
         emit_formatted_error("uninitialized");
         return false;
     }
-    if (is_eof() || _role_buffer == AudioTaskBufferType::Input) {
+    if (is_eof() || _role_buffer == AudioTaskBufferType::Receiving) {
         emit_formatted_error("buffer unavailable.");
         return false;
     }
@@ -134,7 +134,7 @@ bool FFmpegAudioTask::decode(const FFmpegFormatConfig& config, bool is_emit)
     FFmpegFormatConfig destination_config{};
     if (auto b_result = (config == destination_config)
         ; b_result) {
-            /// \brief no need for resample
+            /// @brief no need for resample
             _swr_context_i.reset();
         } else {
             AVChannelLayout destination_layout;

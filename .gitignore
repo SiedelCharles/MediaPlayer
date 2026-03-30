@@ -50,3 +50,5 @@ dependency/
 
 __pycache__/
 *.wav
+
+gui/

@@ -138,9 +138,9 @@ inline void FFmpegAudioTask::emit_formatted_message(const QString &message)
     emit message_ffmpeg(message);
 }
 inline void FFmpegAudioTask::switch_mode() noexcept {
-    if (_role_buffer == AudioTaskBufferType::Input) {
+    if (_role_buffer == AudioTaskBufferType::Receiving) {
         _role_buffer = AudioTaskBufferType::Output;
     } else  if (_role_buffer == AudioTaskBufferType::Output) {
-        _role_buffer = AudioTaskBufferType::Input;
+        _role_buffer = AudioTaskBufferType::Receiving;
     }
 }
