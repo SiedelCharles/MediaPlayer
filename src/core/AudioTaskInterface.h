@@ -52,7 +52,7 @@ class AudioTaskBase : public QObject
 signals:
     void message_finished();
 public:
-    explicit AudioTaskBase(AudioTaskBufferType type = AudioTaskBufferType::Default, QObject* parent = nullptr) noexcept : QObject(parent), _role_buffer(type) {};
+    explicit AudioTaskBase(QObject* parent = nullptr) noexcept : QObject(parent) {}; // AudioTaskBufferType type = AudioTaskBufferType::Default, _role_buffer(type)
     ~AudioTaskBase() override = default;
 
     /// @brief Explicitly delete copy constructor, copy assignment, move constructor, and move assignment

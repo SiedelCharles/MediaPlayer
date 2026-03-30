@@ -1,0 +1,99 @@
+/* pink_theme.qss */
+* {
+    background-color: #fff0f5;  /* 淡粉背景 */
+    color: #4a4a4a;
+    font-family: "Microsoft YaHei", "PingFang SC";
+}
+
+QMainWindow {
+    background-color: #ffe4e9;
+}
+
+/* 按钮 */
+QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffb3d9, stop:1 #ff8cc6);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ff99cc, stop:1 #ff66b3);
+}
+
+QPushButton:pressed {
+    background-color: #ff66b3;
+}
+
+/* 输入框 */
+QLineEdit, QTextEdit {
+    background-color: white;
+    border: 2px solid #ffb3d9;
+    border-radius: 10px;
+    padding: 8px;
+    color: #4a4a4a;
+}
+
+QLineEdit:focus, QTextEdit:focus {
+    border: 2px solid #ff8cc6;
+}
+
+/* 列表/侧边栏 */
+QListWidget {
+    background-color: #fff5f8;
+    border: none;
+    border-radius: 10px;
+}
+
+QListWidget::item {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+QListWidget::item:selected {
+    background-color: #ffd4e5;
+    color: #ff66b3;
+}
+
+QListWidget::item:hover {
+    background-color: #ffe9f0;
+}
+
+/* 滚动条 */
+QScrollBar:vertical {
+    background-color: #fff0f5;
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #ffb3d9;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #ff99cc;
+}
+
+/* 标签页 */
+QTabWidget::pane {
+    border: 2px solid #ffd4e5;
+    border-radius: 10px;background-color: white;
+}
+
+QTabBar::tab {
+    background-color: #ffe9f0;
+    color: #4a4a4a;
+    padding: 10px 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;margin-right: 5px;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffb3d9;
+    color: white;
+}
