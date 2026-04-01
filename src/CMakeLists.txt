@@ -40,17 +40,13 @@ set(WHISPER_LIBS
 
 
 set(CORE_SOURCES
-    # core/FFmpegAudioTask.cpp
-    # core/FFmpegAudioTask.h
-    # # core/AudioTaskInterface.cpp
-    # core/AudioTaskInterface.h
-    # core/WhisperAudioTask.cpp
-    # core/WhisperAudioTask.h
+    core/FFmpegAudioTask.cpp
+    core/WhisperAudioTask.cpp
 )
 
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/include
     ${DEPENDENCY_PATH}/ffmpeg/include
     ${DEPENDENCY_PATH}/whisper/include
     ${CMAKE_SOURCE_DIR}/src/utils

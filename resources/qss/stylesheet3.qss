@@ -1,0 +1,81 @@
+* {
+    font-family: "Microsoft YaHei";
+}
+
+QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #ffe4f5, stop:1 #e8d4ff);
+}
+
+/* 侧边栏 */
+SideBar {
+    background-color: rgba(255, 240, 255, 180);
+    border-right: 2px solid #ffb3d9;
+}
+
+QPushButton[sidebarBtn="true"] {
+    background-color: transparent;
+    color: #666;
+    border: none;
+    border-radius: 10px;
+    text-align: left;
+    padding-left: 20px;
+    font-size: 14px;
+}
+
+QPushButton[sidebarBtn="true"]:checked {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #ffb3d9, stop:1 #ff8cc6);
+    color: white;
+    font-weight: bold;
+}
+
+QPushButton[sidebarBtn="true"]:hover {
+    background-color: rgba(255, 179, 217, 50);
+}
+
+/* 内容区 */
+QStackedWidget {
+    background-color: rgba(255, 255, 255, 200);
+}
+
+QLabel[pageTitle="true"] {
+    font-size: 28px;
+    color: #ff66b3;
+    font-weight: bold;
+}
+
+/* 通用按钮 */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffb3d9, stop:1 #ff8cc6);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ff99cc, stop:1 #ff66b3);
+}
+
+QPushButton:pressed {
+    background-color: #ff66b3;
+}
+
+/* 滑块 */
+QSlider::groove:horizontal {
+    height: 6px;
+    background: #ffd4e5;
+    border-radius: 3px;
+}
+
+QSlider::handle:horizontal {
+    background: #ff8cc6;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    margin: -5px 0;
+}
