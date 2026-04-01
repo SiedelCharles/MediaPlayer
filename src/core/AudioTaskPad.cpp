@@ -1,0 +1,27 @@
+#include "AudioTaskPad.hpp"
+namespace audiotask::core {
+AudioTaskPad::AudioTaskPad(uint32_t id, Direction dir) noexcept : _identifier(id), _direction(dir) {}
+bool AudioTaskPad::link(std::shared_ptr<AudioTaskPad> peer_pad) {
+    if (not peer_pad or _direction == peer_pad->_direction) return false;
+    _peer_pad = peer_pad;
+    peer_pad->_peer_pad = weak_from_this();
+    return true;
+}
+void AudioTaskPad::unlink() noexcept {
+    auto peer = _peer_pad.lock();
+    if (peer) {
+        peer->_peer_pad.reset();
+    }
+    _peer_pad.reset();
+}
+FlowReturn AudioTaskPad::push(AudioTaskBufferList&& buffer) {
+    auto peer_pad = _peer_pad.lock();
+    if (not peer_pad or not peer_pad->_chain_func) {
+        return FlowReturn::Failing;
+    }
+    return peer_pad->_chain_func(std::move(buffer));
+}
+void AudioTaskPad::set_chain_function(ChainFunction func) noexcept {
+    _chain_func = std::move(func);
+}
+} // namespace audiotask::core

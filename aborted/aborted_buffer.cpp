@@ -9,12 +9,13 @@
 #include <variant>
 #include <stdexcept>
 #include <string_view>
-/// @brief iovec if Linux, WSABUF for Windows
-#if defined(_WIN32)
-#include <WinSock2.h>
-#else
-#include <sys/uio.h>
-#endif
+/// @todo I commented out these headers to prevent pollution (e.g., std::min and std::max)
+// /// @brief iovec if Linux, WSABUF for Windows
+// #if defined(_WIN32)
+// #include <WinSock2.h>
+// #else
+// #include <sys/uio.h>
+// #endif
 /// @brief ffmpeg library, to use AVBufferRef
 extern "C" {
 #include <libavutil/buffer.h>
@@ -79,6 +80,8 @@ public:
         if (n >= str_view.size()) throw std::out_of_range("Index out of range");
         return static_cast<uint8_t>(str_view[n]);
     }
+    /// @brief Is buffers empty
+    [[nodiscard]] size_t empty() const { return size() == 0; }
     /// @brief Size of the string
     [[nodiscard]] size_t size() const { return str().size(); }
     /// @brief Make a copy to a new std::string
@@ -144,20 +147,19 @@ public:
         if (n > size()) {
             throw std::out_of_range("BufferList::remove_prefix");
         }
-        
         while (n > 0) {
             auto& front = _buffers.front();
             size_t front_size = front.size();
-            
             if (n < front_size) {
                 front.remove_prefix(n);
                 return;
             }
-            
             n -= front_size;
             _buffers.pop_front();
         }
     }
+    /// @brief Is buffers empty
+    [[nodiscard]] size_t empty() const { return size() == 0;}
     /// @brief Size of the string
     [[nodiscard]] size_t size() const {
         size_t total = 0;
@@ -174,6 +176,34 @@ public:
             result.append(buf);
         }
         return result;
+    }
+    [[nodiscard]] std::string concatenate(size_t max_len) const {
+        std::string result;
+        result.reserve(std::min(max_len, size()));
+        size_t remaining = max_len;
+        for (const auto &buf : _buffers) {
+            if (remaining == 0) break;
+            size_t to_copy = std::min(remaining, buf.size());
+            result.append(buf, 0, to_copy);
+            remaining -= to_copy;
+        }
+        return result;
+    }
+    /// @brief Get the first buffer
+    [[nodiscard]] AudioTaskBuffer front() const {
+        if (_buffers.empty()) {
+            throw std::out_of_range("BufferList::front on empty list");
+        }
+        return _buffers.front();
+    }
+    /// @brief Pop the first buffer and remove it
+    [[nodiscard]] AudioTaskBuffer pop_front() {
+        if (_buffers.empty()) {
+            throw std::out_of_range("BufferList::pop_front on empty list");
+        }
+        auto buffer = std::move(_buffers.front());
+        _buffers.pop_front();
+        return buffer;
     }
 };
 /// @brief A non-owning temporary view (similar to std::string_view) of a discontiguous string
