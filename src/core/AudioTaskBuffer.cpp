@@ -12,7 +12,7 @@ AVBufferRefStorage::AVBufferRefWrapper::~AVBufferRefWrapper() { if (_ref) av_buf
 AVBufferRefStorage::AVBufferRefStorage(AVBufferRef *ref) : _shared_ref(std::make_shared<AVBufferRefWrapper>(ref)) {}
 AudioTaskBuffer::AudioTaskBuffer() : _storage(StringStorage{std::make_shared<std::string>()}) {}
 AudioTaskBuffer::AudioTaskBuffer(std::string &&str) noexcept : _storage(StringStorage(std::make_shared<std::string>(std::move(str)))) {}
-AudioTaskBuffer::AudioTaskBuffer(AVBufferRef *ref) : _storage(AVBufferRefStorage(ref)) {}
+AudioTaskBuffer::AudioTaskBuffer(AVBufferRef *ref) noexcept : _storage(AVBufferRefStorage(ref)) {}
 std::pair<const char*, size_t> AudioTaskBuffer::_storage_view() const {
     return std::visit([](const auto& storage) -> std::pair<const char*, size_t> {
         using Type = std::decay_t<decltype(storage)>;

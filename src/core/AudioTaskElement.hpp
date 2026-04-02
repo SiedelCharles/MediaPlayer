@@ -1,5 +1,11 @@
+#pragma once
 #include "AudioTaskPad.hpp"
 #include "AudioTaskBuffer.hpp"
+#include <atomic>
+#include <memory>
+#include <string>
+#include <vector>
+#include <cstdint>
 namespace audiotask::core {
 /// @brief Base class for audio processing elements
 /// @details Elements are processing units that contain pads for linking.
