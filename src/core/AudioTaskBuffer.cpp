@@ -5,16 +5,14 @@
 namespace audiotask::core {
 StringStorage::StringStorage() : _shared_ref(std::make_shared<std::string>()) {}
 StringStorage::StringStorage(std::shared_ptr<std::string> s):_shared_ref(std::move(s)) {}
-AVBufferRefStorage::AVBufferRefWrapper::AVBufferRefWrapper(AVBufferRef *ref) {
+AVBufferRefStorage::AVBufferRefWrapper::AVBufferRefWrapper(AVBufferRef *ref) : _ref(ref) {
     if (!ref) throw std::invalid_argument("AVBufferRef is null");
-    _ref = av_buffer_ref(ref);
-    if (!_ref) throw std::invalid_argument("av_buffer_ref failed");
 }
 AVBufferRefStorage::AVBufferRefWrapper::~AVBufferRefWrapper() { if (_ref) av_buffer_unref(&_ref); }
 AVBufferRefStorage::AVBufferRefStorage(AVBufferRef *ref) : _shared_ref(std::make_shared<AVBufferRefWrapper>(ref)) {}
 AudioTaskBuffer::AudioTaskBuffer() : _storage(StringStorage{std::make_shared<std::string>()}) {}
 AudioTaskBuffer::AudioTaskBuffer(std::string &&str) noexcept : _storage(StringStorage(std::make_shared<std::string>(std::move(str)))) {}
-AudioTaskBuffer::AudioTaskBuffer(AVBufferRef *ref) noexcept : _storage(AVBufferRefStorage(ref)) {}
+AudioTaskBuffer::AudioTaskBuffer(AVBufferRef *ref) : _storage(AVBufferRefStorage(ref)) {}
 std::pair<const char*, size_t> AudioTaskBuffer::_storage_view() const {
     return std::visit([](const auto& storage) -> std::pair<const char*, size_t> {
         using Type = std::decay_t<decltype(storage)>;
@@ -63,7 +61,7 @@ void AudioTaskBufferList::append(const AudioTaskBufferList &other) {
 }
 void AudioTaskBufferList::append(AudioTaskBufferList &&other) {
     _buffers.insert(_buffers.end(), std::make_move_iterator(other._buffers.begin()), std::make_move_iterator(other._buffers.end()));
-    /// @todo clear other
+    other._buffers.clear();
 }
 AudioTaskBufferList::operator AudioTaskBuffer() const {
     switch (_buffers.size()) {
@@ -140,7 +138,7 @@ AudioTaskBufferViewList::AudioTaskBufferViewList(const AudioTaskBufferList &buff
         _views.push_back(x);
     }
 }
-AudioTaskBufferViewList::AudioTaskBufferViewList(std::string_view str) { _views.push_back({const_cast<char *>(str.data()), str.size()}); }
+AudioTaskBufferViewList::AudioTaskBufferViewList(std::string_view str) {_views.push_back(str);}
 void AudioTaskBufferViewList::remove_prefix(size_t n) {
     while (n > 0) {
         if (_views.empty()) {

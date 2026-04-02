@@ -12,5 +12,5 @@ add_link_options($<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_subdirectory(src)
-# add_subdirectory(tests)
+add_subdirectory(tests)
 

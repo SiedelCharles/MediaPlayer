@@ -40,13 +40,16 @@ set(WHISPER_LIBS
 
 
 set(CORE_SOURCES
-    core/FFmpegAudioTask.cpp
-    core/WhisperAudioTask.cpp
+    core/AudioTaskBuffer.cpp
+    core/AudioTaskByteStream.cpp
+    core/AudioTaskElement.cpp
+    core/AudioTaskPad.cpp
+    core/AudioTaskPipeline.cpp
 )
 
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${DEPENDENCY_PATH}/ffmpeg/include
     ${DEPENDENCY_PATH}/whisper/include
     ${CMAKE_SOURCE_DIR}/src/utils
@@ -60,46 +63,6 @@ target_link_libraries(core
 
 
 # set(GUI_SOURCES
-#         # gui/main.cpp
-#     gui/mainwindow.cpp
-#     gui/widgettitle.cpp
-#     gui/widgetside.cpp
-#     gui/itemsidelistwidget.cpp
-#     gui/stackwidgetfordisplay.cpp
-#     gui/delegateside.cpp
-#     gui/pagedisplay.cpp
-#     gui/pagetranscription.cpp
-#     gui/pagetranslation.cpp
-#     gui/pagesynthesis.cpp
-#     gui/filetreeitem.cpp
-#     gui/filetreewidget.cpp
-#     gui/mainwindow.h
-#     gui/widgettitle.h
-#     gui/widgetside.h
-#     gui/itemsidelistwidget.h
-#     gui/setting.h
-#     gui/stackwidgetfordisplay.h
-#     gui/delegateside.h
-#     gui/pagedisplay.h
-#     gui/pagetranscription.h
-#     gui/pagetranslation.h
-#     gui/pagesynthesis.h
-#     gui/filetreeitem.h
-#     gui/filetreewidget.h
-#     gui/filetreewidget.h
-#     gui/filetreethread.cpp
-#     gui/filetreethread.h
-#     gui/audioplaypage.cpp
-#     gui/audioplaypage.h
-#     gui/audioplaythread.cpp
-#     gui/audioplaythread.h
-#     gui/transcriptionthread.cpp
-#     gui/transcriptionthread.h
-#     gui/transcriptiondecodethread.cpp
-#     gui/transcriptiondecodethread.h
-#     gui/synthesismergethread.cpp
-#     gui/synthesismergethread.h
-#     gui/resource.qrc
 # )
 # add_library(gui STATIC ${GUI_SOURCES})
 # target_include_directories(gui PUBLIC
@@ -107,22 +70,22 @@ target_link_libraries(core
 # )
 # target_link_libraries(gui PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia)
 
-set(SCRIPTS_SOURCES
-    scripts/translate_script.cpp
-    scripts/synthesis_script.cpp
-)
-add_library(scripts STATIC ${SCRIPTS_SOURCES})
+# set(SCRIPTS_SOURCES
+#     scripts/translate_script.cpp
+#     scripts/synthesis_script.cpp
+# )
+# add_library(scripts STATIC ${SCRIPTS_SOURCES})
 # target_link_options(scripts PRIVATE $<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
-target_link_libraries(scripts PUBLIC pybind11::embed Python::Python)
+# target_link_libraries(scripts PUBLIC pybind11::embed Python::Python)
 
 
-set(APP_SOURCES
-    app/main.cpp
-    ${SCRIPTS_SOURCES}
-)
-add_executable(app ${APP_SOURCES})
-target_include_directories(app PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui
-)
-target_link_libraries(app PUBLIC core scripts) # gui
-target_link_libraries(app PUBLIC Qt6::Core Qt6::Widgets)
+# set(APP_SOURCES
+#     app/main.cpp
+#     ${SCRIPTS_SOURCES}
+# )
+# add_executable(app ${APP_SOURCES})
+# target_include_directories(app PRIVATE
+#     ${CMAKE_CURRENT_SOURCE_DIR}/gui
+# )
+# target_link_libraries(app PUBLIC core scripts) # gui
+# target_link_libraries(app PUBLIC Qt6::Core Qt6::Widgets)

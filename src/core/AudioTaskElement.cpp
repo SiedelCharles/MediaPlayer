@@ -35,7 +35,7 @@ bool AudioTaskElement::link_to(AudioTaskElement* other) {
     if (not src_shared or not sink_shared) return false;
     return src_shared->link(sink_shared);
 }
-bool AudioTaskElement::start() { return true; }
+bool AudioTaskElement::start() { return false; }
 bool AudioTaskElement::stop() { return true; }
 std::shared_ptr<AudioTaskPad> AudioTaskElement::find_shared_ptr(AudioTaskPad* raw) noexcept {
     for (auto& pad : _pads) {
