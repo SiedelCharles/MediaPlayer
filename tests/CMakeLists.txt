@@ -1,14 +1,45 @@
+# googletest
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+# Windows/MSVC 常用，避免运行库设置冲突
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 add_executable(CoreTest
     core/test_buffer.cpp
+    core/test_stream.cpp
 )
-
 target_include_directories(CoreTest
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src/core
 )
-
 target_link_libraries(CoreTest
     PRIVATE
     Core
+    GTest::gtest
+    GTest::gtest_main
 )
 
+add_executable(IOTest
+    IO/sources/FFmpegFileSourceTests.cpp
+)
+target_include_directories(IOTest
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+)
+target_link_libraries(IOTest
+    PRIVATE
+    io
+    Core
+    GTest::gtest
+    GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(CoreTest)
+gtest_discover_tests(IOTest)

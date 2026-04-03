@@ -36,7 +36,7 @@ public:
     /// @return Whether the stop succeeded
     bool stop() {
         for (auto& elem : _elements) {
-            elem->stop();
+            auto b_result = elem->stop();
         }
         return true;
     }

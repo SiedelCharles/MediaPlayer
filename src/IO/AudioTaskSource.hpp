@@ -37,9 +37,9 @@ public:
     /// @details Signals thread to stop and waits for completion
     /// @return true if stopped successfully, false if not running
     [[nodiscard]] bool stop() override {
-        if (!_running.exchange(false)) return false;
+        const bool is_running = _running.exchange(false);
         if (_thread.joinable()) _thread.join();
-        return true;
+        return is_running;
     }
 };
 } // namespace audiotask::source

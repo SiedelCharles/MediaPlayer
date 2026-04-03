@@ -91,7 +91,7 @@ public:
     /// @brief Discard the first `n` bytes of the string (does not require a copy or move)
     void remove_prefix(size_t n);
     /// @brief Is buffers empty
-    [[nodiscard]] size_t empty() const { return size() == 0;}
+    [[nodiscard]] bool empty() const { return size() == 0;}
     /// @brief Size of the string
     [[nodiscard]] size_t size() const;
     /// @brief Make a copy to a new std::string

@@ -8,8 +8,11 @@ project(
     LANGUAGES CXX
 )
 
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(MSVC)
     set(CMAKE_PREFIX_PATH "D:/QT/QT/6.5.3/msvc2019_64" ${CMAKE_PREFIX_PATH})
@@ -46,17 +49,6 @@ set(WHISPER_LIBS
 )
 
 option(MEDIAPLAYER_BUILD_TESTS "Build tests" ON)
-
-# googletest
-include(FetchContent)
-FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-)
-# Windows/MSVC 常用，避免运行库设置冲突
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
 
 if(MSVC)
     add_compile_options($<$<CONFIG:Debug>:/U_DEBUG>)
