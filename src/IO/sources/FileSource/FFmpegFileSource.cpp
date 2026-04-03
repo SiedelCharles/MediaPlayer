@@ -78,6 +78,7 @@ bool FFmpegFileSource::setup_resampler() noexcept {
     _swr_context.reset(swr);
     return true;
 }
+
 bool FFmpegFileSource::init(const std::string& file_path) noexcept {
     std::lock_guard<std::mutex> op_lock(_operation_mutex);
     if (_running.load()) return false;

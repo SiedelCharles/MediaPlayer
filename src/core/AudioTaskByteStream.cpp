@@ -1,99 +1,106 @@
 #include "AudioTaskByteStream.hpp"
+
+#include <utility>
+#include <algorithm>
+
 namespace audiotask::core {
-size_t AudioTaskByteStream::write(AudioTaskBuffer buffer) {
-    if (buffer.empty()) return 0;
-    const size_t bytes = buffer.size();
-    std::unique_lock<std::mutex> lock(_mutex);
-    while (true) {
-        if (_aborted or _error or _flushing) return 0;
-        if (_current_size + bytes <= _capacity) {
-            _current_size += bytes;
-            _buffers.append(AudioTaskBufferList(buffer));
-            _condition_read.notify_one();
-            return bytes;
-        }
-        _condition_write.wait(lock);
+
+void AudioTaskByteStream::append(const AudioTaskBufferList& buffers) {
+    _buffers.append(buffers);
+    _current_size += buffers.size();
+}
+
+void AudioTaskByteStream::append(AudioTaskBufferList&& buffers) {
+    _current_size += buffers.size();
+    _buffers.append(std::move(buffers));
+}
+
+AudioTaskBufferViewList AudioTaskByteStream::peek(size_t len) const {
+    AudioTaskBufferViewList result{};
+
+    if (len == 0 || _current_size == 0) {
+        return result;
     }
+
+    size_t remaining = std::min(len, size());
+
+    for (const auto& buffer : _buffers.buffers()) {
+        if (remaining == 0) {
+            break;
+        }
+
+        const std::string_view str_view = buffer.str();
+        const size_t to_take = std::min(remaining, str_view.size());
+
+        if (to_take > 0) {
+            result.append(str_view.substr(0, to_take));
+            remaining -= to_take;
+        }
+    }
+
+    return result;
 }
-size_t AudioTaskByteStream::try_write(AudioTaskBuffer buffer) {
-    if (buffer.empty()) return 0;
-    const size_t bytes = buffer.size();
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (_aborted || _error || _flushing) return 0;
-    if (_current_size + bytes > _capacity) return 0;
-    _current_size += bytes;
-    _buffers.append(AudioTaskBufferList(buffer));
-    _condition_read.notify_one();
-    return bytes;
+
+std::optional<AudioTaskBufferViewList> AudioTaskByteStream::peek_exact(size_t len) const {
+    if (!has(len)) {
+        return std::nullopt;
+    }
+
+    return peek(len);
 }
-void AudioTaskByteStream::end_input() noexcept {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _finished = true;
-    _condition_read.notify_all();
-}
-std::string AudioTaskByteStream::peek_output(size_t len) const {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (len == 0 || _buffers.empty()) return {};
+
+std::string AudioTaskByteStream::peek_copy(size_t len) const {
     return _buffers.concatenate(len);
 }
-void AudioTaskByteStream::pop_output(size_t len) {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (len == 0 or _buffers.empty()) return;
-    const size_t to_remove = std::min(len, _current_size);
-    _buffers.remove_prefix(to_remove);
-    _current_size -= to_remove;
-    _condition_write.notify_one();
-}
-/// @todo supplement pop/peek which return Buffers
-AudioTaskBuffer AudioTaskByteStream::pop() {
-    std::unique_lock<std::mutex> lock(_mutex);
-    while (true) {
-        if (_aborted || _flushing) return {};
-        if (!_buffers.empty()) {
-            auto buffer = _buffers.pop_front();
-            _current_size -= buffer.size();
-            _condition_write.notify_one();
-            return buffer;
-        }
-        if (_finished) return {};
-        _condition_read.wait(lock);
+
+void AudioTaskByteStream::consume(size_t len) {
+    const size_t to_consume = std::min(len, size());
+
+    if (to_consume == 0) {
+        return;
     }
+
+    _buffers.remove_prefix(to_consume);
+    _current_size -= to_consume;
 }
-AudioTaskBuffer AudioTaskByteStream::try_pop() {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (_aborted || _flushing || _buffers.empty()) return AudioTaskBuffer{};
-    auto buffer = AudioTaskBuffer(_buffers.buffers().front());
-    const size_t size = buffer.size();
-    _buffers.remove_prefix(size);
-    _current_size -= size;
-    _condition_write.notify_one();
-    return buffer;
+
+std::string AudioTaskByteStream::read_copy(size_t len) {
+    std::string result = peek_copy(len);
+    consume(result.size());
+    return result;
 }
-void AudioTaskByteStream::abort() noexcept {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _aborted = true;
-    _condition_read.notify_all();
-    _condition_write.notify_all();
+
+AudioTaskBufferList AudioTaskByteStream::take(size_t len) {
+    AudioTaskBufferList result;
+
+    if (len == 0 || _current_size == 0) {
+        return result;
+    }
+
+    size_t remaining = std::min(len, size());
+
+    while (remaining > 0 && !_buffers.empty()) {
+        const AudioTaskBuffer& front = _buffers.front();
+        const size_t front_size = front.size();
+
+        if (front_size <= remaining) {
+            result.append(AudioTaskBufferList(_buffers.pop_front()));
+            remaining -= front_size;
+            _current_size -= front_size;
+        } else {
+            result.append(AudioTaskBufferList(front.copy().substr(0, remaining)));
+            _buffers.remove_prefix(remaining);
+            _current_size -= remaining;
+            remaining = 0;
+        }
+    }
+
+    return result;
 }
+
 void AudioTaskByteStream::clear() noexcept {
-    std::lock_guard<std::mutex> lock(_mutex);
     _buffers = AudioTaskBufferList{};
     _current_size = 0;
-    _condition_write.notify_all();
 }
-void AudioTaskByteStream::flush_begin() noexcept {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _flushing = true;
-    _buffers = AudioTaskBufferList{};
-    _current_size = 0;
-    _condition_read.notify_all();
-    _condition_write.notify_all();
-}
-void AudioTaskByteStream::flush_end() noexcept {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _flushing = false;
-    _finished = false;
-    _condition_read.notify_all();
-    _condition_write.notify_all();
-}
-}
+
+}  // namespace audiotask::core
