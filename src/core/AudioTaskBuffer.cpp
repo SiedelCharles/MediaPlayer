@@ -13,7 +13,7 @@ StringStorage::StringStorage() : _shared_ref(std::make_shared<std::string>()) {}
 StringStorage::StringStorage(std::shared_ptr<std::string> s) : _shared_ref(std::move(s)) {}
 
 /// @brief AVBufferRefStorage Wrapper
-AVBufferRefStorage::AVBufferRefWrapper::AVBufferRefWrapper(AVBufferRef* ref) : _ref(ref) {
+AVBufferRefStorage::AVBufferRefWrapper::AVBufferRefWrapper(AVBufferRef* ref, uint64_t valid_size) : _ref(ref), _valid_size(valid_size) {
     if (_ref == nullptr) {
         throw std::invalid_argument("AVBufferRef is null");
     }
@@ -25,15 +25,15 @@ AVBufferRefStorage::AVBufferRefWrapper::~AVBufferRefWrapper() {
     }
 }
 
-AVBufferRefStorage::AVBufferRefStorage(AVBufferRef* ref)
-    : _shared_ref(std::make_shared<AVBufferRefWrapper>(ref)) {}
+AVBufferRefStorage::AVBufferRefStorage(AVBufferRef* ref, uint64_t valid_size)
+    : _shared_ref(std::make_shared<AVBufferRefWrapper>(ref, valid_size)) {}
 
 AudioTaskBuffer::AudioTaskBuffer() : _storage(StringStorage{}) {}
 
 AudioTaskBuffer::AudioTaskBuffer(std::string&& str)
     : _storage(StringStorage(std::make_shared<std::string>(std::move(str)))) {}
 
-AudioTaskBuffer::AudioTaskBuffer(AVBufferRef* ref) : _storage(AVBufferRefStorage(ref)) {}
+AudioTaskBuffer::AudioTaskBuffer(AVBufferRef* ref, uint64_t valid_size) : _storage(AVBufferRefStorage(ref, valid_size)) {}
 
 std::pair<const char*, size_t> AudioTaskBuffer::_storage_view() const {
     return std::visit(
@@ -45,7 +45,7 @@ std::pair<const char*, size_t> AudioTaskBuffer::_storage_view() const {
             } else if constexpr (std::is_same_v<Type, AVBufferRefStorage>) {
                 return {
                     reinterpret_cast<const char*>(storage._shared_ref->_ref->data),
-                    static_cast<size_t>(storage._shared_ref->_ref->size),
+                    static_cast<size_t>(storage._shared_ref->_valid_size),
                 };
             }
         },
@@ -103,7 +103,7 @@ AudioTaskBufferList::AudioTaskBufferList(std::string&& str) {
     _buffers.emplace_back(std::move(str));
 }
 
-AudioTaskBufferList::AudioTaskBufferList(AVBufferRef* ref) : _buffers{AudioTaskBuffer(ref)} {}
+AudioTaskBufferList::AudioTaskBufferList(AVBufferRef* ref, uint64_t valid_size) : _buffers{AudioTaskBuffer(ref, valid_size)} {}
 
 void AudioTaskBufferList::append(const AudioTaskBufferList& other) {
     _buffers.insert(_buffers.end(), other._buffers.begin(), other._buffers.end());

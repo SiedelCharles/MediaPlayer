@@ -38,8 +38,9 @@ struct StringStorage {
 struct AVBufferRefStorage {
     struct AVBufferRefWrapper {
         AVBufferRef* _ref;
+        uint64_t _valid_size;
 
-        explicit AVBufferRefWrapper(AVBufferRef* ref);
+        explicit AVBufferRefWrapper(AVBufferRef* ref, uint64_t valid_size);
         ~AVBufferRefWrapper();
 
         AVBufferRefWrapper(const AVBufferRefWrapper&) = delete;
@@ -48,7 +49,7 @@ struct AVBufferRefStorage {
 
     std::shared_ptr<AVBufferRefWrapper> _shared_ref;
 
-    explicit AVBufferRefStorage(AVBufferRef* ref);
+    explicit AVBufferRefStorage(AVBufferRef* ref, uint64_t valid_size);
 };
 
 using BufferStorage = std::variant<StringStorage, AVBufferRefStorage>;
@@ -65,7 +66,7 @@ private:
 public:
     AudioTaskBuffer();
     explicit AudioTaskBuffer(std::string&& str);
-    explicit AudioTaskBuffer(AVBufferRef* ref);
+    explicit AudioTaskBuffer(AVBufferRef* ref, uint64_t valid_size);
 
     /// @name Expose contents as a std::string_view
     /// @{
@@ -107,7 +108,7 @@ public:
     explicit AudioTaskBufferList(std::string&& str);
 
     /// @brief Construct by AVBufferRef*
-    explicit AudioTaskBufferList(AVBufferRef* ref);
+    explicit AudioTaskBufferList(AVBufferRef* ref, uint64_t valid_size);
     /// @}
 
     /// @brief Access the underlying queue of Buffers

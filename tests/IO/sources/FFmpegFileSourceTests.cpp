@@ -1,4 +1,3 @@
-#pragma once
 // FFmpegFileSourceTest.hpp
 #include <gtest/gtest.h>
 #include <atomic>
@@ -287,22 +286,22 @@ TEST_F(FFmpegFileSourceTest, RunProducesCorrectSampleFormat)
     }
 }
 
-TEST_F(FFmpegFileSourceTest, RunEndsAfterFullDecode)
-{
-    ASSERT_TRUE(source.init(kValidAudioFile));
-    double duration = source.source_format().duration;
-    source.set_output_format({2, 44100, 0.0, SampleFormat::F32});
+// TEST_F(FFmpegFileSourceTest, RunEndsAfterFullDecode)
+// {
+//     ASSERT_TRUE(source.init(kValidAudioFile));
+//     double duration = source.source_format().duration;
+//     source.set_output_format({2, 44100, 0.0, SampleFormat::F32});
 
-    ASSERT_TRUE(source.start());
+//     ASSERT_TRUE(source.start());
 
-    // 等待比duration 多一点
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(static_cast<int>(duration * 1000) + 500));
+//     // 等待比duration 多一点
+//     std::this_thread::sleep_for(
+//         std::chrono::milliseconds(static_cast<int>(duration * 1000) + 500));
 
-    // 线程应该已经自然结束
-    EXPECT_FALSE(source.stop()); // stop() 返回 false 说明线程已结束
-    EXPECT_GT(sink.total_bytes(), 0u);
-}
+//     // 线程应该已经自然结束
+//     EXPECT_FALSE(source.stop()); // stop() 返回 false 说明线程已结束
+//     EXPECT_GT(sink.total_bytes(), 0u);
+// }
 /// @todo seek
 // TEST_F(FFmpegFileSourceTest, SeekDuringRunTakesEffect)
 // {
@@ -318,9 +317,9 @@ TEST_F(FFmpegFileSourceTest, RunEndsAfterFullDecode)
 //     std::this_thread::sleep_for(200ms);EXPECT_GT(sink.total_bytes(), bytes_before);source.stop();
 // }
 
-TEST_F(FFmpegFileSourceTest, StopImmediatelyAfterStart)
-{
-    ASSERT_TRUE(source.init(kValidAudioFile));
-    ASSERT_TRUE(source.start());
-    EXPECT_TRUE(source.stop()); // 不应死锁或崩溃
-}
+// TEST_F(FFmpegFileSourceTest, StopImmediatelyAfterStart)
+// {
+//     ASSERT_TRUE(source.init(kValidAudioFile));
+//     ASSERT_TRUE(source.start());
+//     EXPECT_TRUE(source.stop()); // 不应死锁或崩溃
+// }

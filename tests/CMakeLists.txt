@@ -40,6 +40,25 @@ target_link_libraries(IOTest
     GTest::gtest_main
 )
 
+add_executable(VADTest
+    VAD/test_vad.cpp
+)
+target_include_directories(VADTest
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+    ${PROJECT_SOURCE_DIR}/src/VAD
+)
+target_link_libraries(VADTest
+    PRIVATE
+    io
+    vad
+    Core
+    GTest::gtest
+    GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(CoreTest)
 gtest_discover_tests(IOTest)
+gtest_discover_tests(VADTest)

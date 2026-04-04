@@ -73,21 +73,22 @@ public:
     
     /// @name "Output" interface for the reader
     /// @{
-    /// @brief Peek at next "len" bytes of the stream without removing them
-    /// @param len Number of bytes to peek
-    /// @return String containing peeked data
-    [[nodiscard]] std::string peek_output(size_t len) const;
-    /// @brief Remove bytes from the buffer
-    /// @param len Number of bytes to remove
-    void pop_output(size_t len);
-    /// @brief Read (i.e., peek and then pop) the next "len" bytes of the stream
-    /// @param len Number of bytes to read
-    /// @return String containing read data
-    [[nodiscard]] inline std::string read(size_t len) {
-        auto ret = peek_output(len);
-        pop_output(ret.size());
-        return ret;
-    }
+    /// @details this is moved to bytestream
+    // /// @brief Peek at next "len" bytes of the stream without removing them
+    // /// @param len Number of bytes to peek
+    // /// @return String containing peeked data
+    // [[nodiscard]] std::string peek_output(size_t len) const;
+    // /// @brief Remove bytes from the buffer
+    // /// @param len Number of bytes to remove
+    // void pop_output(size_t len);
+    // /// @brief Read (i.e., peek and then pop) the next "len" bytes of the stream
+    // /// @param len Number of bytes to read
+    // /// @return String containing read data
+    // [[nodiscard]] inline std::string read(size_t len) {
+    //     auto ret = peek_output(len);
+    //     pop_output(ret.size());
+    //     return ret;
+    // }
     /// @brief Pop a buffer from the stream (blocking)
     /// @return Buffer pointer, or nullptr if stream ended or aborted
     /// @note Blocks if queue is empty until data is available or stream ends

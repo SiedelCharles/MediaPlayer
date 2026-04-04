@@ -31,19 +31,19 @@ void AudioTaskBufferStream::end_input() noexcept {
     _finished = true;
     _condition_read.notify_all();
 }
-std::string AudioTaskBufferStream::peek_output(size_t len) const {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (len == 0 || _buffers.empty()) return {};
-    return _buffers.concatenate(len);
-}
-void AudioTaskBufferStream::pop_output(size_t len) {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if (len == 0 or _buffers.empty()) return;
-    const size_t to_remove = std::min(len, _current_size);
-    _buffers.remove_prefix(to_remove);
-    _current_size -= to_remove;
-    _condition_write.notify_one();
-}
+// std::string AudioTaskBufferStream::peek_output(size_t len) const {
+//     std::lock_guard<std::mutex> lock(_mutex);
+//     if (len == 0 || _buffers.empty()) return {};
+//     return _buffers.concatenate(len);
+// }
+// void AudioTaskBufferStream::pop_output(size_t len) {
+//     std::lock_guard<std::mutex> lock(_mutex);
+//     if (len == 0 or _buffers.empty()) return;
+//     const size_t to_remove = std::min(len, _current_size);
+//     _buffers.remove_prefix(to_remove);
+//     _current_size -= to_remove;
+//     _condition_write.notify_one();
+// }
 /// @todo supplement pop/peek which return Buffers
 AudioTaskBuffer AudioTaskBufferStream::pop() {
     std::unique_lock<std::mutex> lock(_mutex);

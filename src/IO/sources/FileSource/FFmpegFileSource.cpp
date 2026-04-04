@@ -197,6 +197,7 @@ void FFmpegFileSource::run() {
         _running.store(false);
         return;
     }
+
     while (_running.load()) {
         int read_result = 0;
         {
@@ -210,39 +211,48 @@ void FFmpegFileSource::run() {
             }
             read_result = av_read_frame(_format_context.get(), packet.get());
         }
+
         if (read_result < 0) {
             break;
         }
+
         if (packet->stream_index != _stream_index) {
             av_packet_unref(packet.get());
             continue;
         }
+
         {
             std::lock_guard<std::mutex> op_lock(_operation_mutex);
-            if (auto b_result = avcodec_send_packet(_codec_context.get(), packet.get())
-            ; b_result < 0) {
+            if (auto b_result = avcodec_send_packet(_codec_context.get(), packet.get());
+                b_result < 0) {
                 av_packet_unref(packet.get());
                 continue;
             }
         }
+
         av_packet_unref(packet.get());
+
         while (_running.load()) {
             int recv_result = 0;
             {
                 std::lock_guard<std::mutex> op_lock(_operation_mutex);
                 recv_result = avcodec_receive_frame(_codec_context.get(), frame.get());
             }
+
             if (recv_result == AVERROR(EAGAIN) || recv_result == AVERROR_EOF) {
                 break;
             }
+
             if (recv_result < 0) {
                 break;
             }
+
             SourceFormat out_fmt{};
             {
                 std::lock_guard<std::mutex> state_lock(_state_mutex);
                 out_fmt = _output_format;
             }
+
             const AVSampleFormat dst_fmt = to_av_sample_format(out_fmt.format);
             if (dst_fmt == AV_SAMPLE_FMT_NONE ||
                 out_fmt.channels <= 0 ||
@@ -250,90 +260,112 @@ void FFmpegFileSource::run() {
                 av_frame_unref(frame.get());
                 continue;
             }
+
             const int dst_nb_samples = av_rescale_rnd(
                 swr_get_delay(_swr_context.get(), _codec_context->sample_rate) + frame->nb_samples,
                 out_fmt.sample_rate,
                 _codec_context->sample_rate,
                 AV_ROUND_UP
             );
-            uint8_t** dst_data = nullptr;
-            int dst_linesize = 0;
-            if (av_samples_alloc_array_and_samples(
-                    &dst_data,
-                    &dst_linesize,
-                    out_fmt.channels,
-                    dst_nb_samples,
-                    dst_fmt,
-                    0) < 0) {
+
+            if (dst_nb_samples <= 0) {
                 av_frame_unref(frame.get());
                 continue;
             }
+
+            const int max_buffer_size = av_samples_get_buffer_size(
+                nullptr,
+                out_fmt.channels,
+                dst_nb_samples,
+                dst_fmt,
+                1
+            );
+
+            if (max_buffer_size <= 0) {
+                av_frame_unref(frame.get());
+                continue;
+            }
+
+            AVBufferRef* ref = av_buffer_alloc(static_cast<size_t>(max_buffer_size));
+            if (!ref || !ref->data) {
+                if (ref) {
+                    av_buffer_unref(&ref);
+                }
+                av_frame_unref(frame.get());
+                continue;
+            }
+
+            uint8_t* out_planes[1] = { ref->data };
+
             int converted_samples = 0;
             {
                 std::lock_guard<std::mutex> op_lock(_operation_mutex);
                 converted_samples = swr_convert(
                     _swr_context.get(),
-                    dst_data,
+                    out_planes,
                     dst_nb_samples,
                     const_cast<const uint8_t**>(frame->extended_data),
                     frame->nb_samples
                 );
             }
-            if (converted_samples > 0) {
-                const int buffer_size = av_samples_get_buffer_size(
-                    &dst_linesize,
-                    out_fmt.channels,
-                    converted_samples,
-                    dst_fmt,
-                    1
-                );
-                if (buffer_size > 0) {
-                    auto pad = get_pad(core::Direction::Sending);
-                    if (pad) {
-                        AVBufferRef* ref = av_buffer_alloc(static_cast<size_t>(buffer_size));
-                        if (ref && ref->data) {
-                            /// @todo optimize here
-                            std::memcpy(ref->data, dst_data[0], static_cast<size_t>(buffer_size));
-                            try {
-                                core::AudioTaskBufferList buffer_list(ref);
-                                ref = nullptr;
-                                const auto flow = pad->push(std::move(buffer_list));
-                                if (flow == core::FlowReturn::Ended ||
-                                    flow == core::FlowReturn::Failing ||
-                                    flow == core::FlowReturn::Flushing) {
-                                    if (dst_data) {
-                                        av_freep(&dst_data[0]);
-                                        av_freep(&dst_data);
-                                    }
-                                    av_frame_unref(frame.get());
-                                    _running.store(false);
-                                    return;
-                                }
-                            } catch (...) {
-                                if (ref) av_buffer_unref(&ref);
-                                if (dst_data) {
-                                    av_freep(&dst_data[0]);
-                                    av_freep(&dst_data);
-                                }
-                                av_frame_unref(frame.get());
-                                _running.store(false);
-                                return;
-                            }
-                        } else {
-                            if (ref) av_buffer_unref(&ref);
-                        }
-                    }
+
+            if (converted_samples <= 0) {
+                av_buffer_unref(&ref);
+                av_frame_unref(frame.get());
+                continue;
+            }
+
+            const int actual_buffer_size = av_samples_get_buffer_size(
+                nullptr,
+                out_fmt.channels,
+                converted_samples,
+                dst_fmt,
+                1
+            );
+
+            if (actual_buffer_size <= 0) {
+                av_buffer_unref(&ref);
+                av_frame_unref(frame.get());
+                continue;
+            }
+
+            auto pad = get_pad(core::Direction::Sending);
+            if (!pad) {
+                av_buffer_unref(&ref);
+                av_frame_unref(frame.get());
+                continue;
+            }
+
+            try {
+                core::AudioTaskBufferList buffer_list(ref, static_cast<uint64_t>(actual_buffer_size));
+                ref = nullptr;
+
+                /// @todo set acctual size
+
+                const auto flow = pad->push(std::move(buffer_list));
+                if (flow == core::FlowReturn::Ended ||
+                    flow == core::FlowReturn::Failing ||
+                    flow == core::FlowReturn::Flushing) {
+                    av_frame_unref(frame.get());
+                    _running.store(false);
+                    return;
                 }
+            } catch (...) {
+                if (ref) {
+                    av_buffer_unref(&ref);
+                }
+                av_frame_unref(frame.get());
+                _running.store(false);
+                return;
             }
-            if (dst_data) {
-                av_freep(&dst_data[0]);
-                av_freep(&dst_data);
-            }
+
             av_frame_unref(frame.get());
         }
     }
+
     _running.store(false);
 }
+
 bool FFmpegFileSource::close() noexcept {
     stop();
     std::lock_guard<std::mutex> op_lock(_operation_mutex);

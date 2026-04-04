@@ -48,6 +48,9 @@ set(WHISPER_LIBS
     ${WHISPER_LIB_PATH}/ggml-base.lib
 )
 
+set(ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/dependency/libfvad)
+
 option(MEDIAPLAYER_BUILD_TESTS "Build tests" ON)
 
 if(MSVC)
