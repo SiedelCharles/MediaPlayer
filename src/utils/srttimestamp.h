@@ -6,7 +6,7 @@
 #include <fstream>
 #include <cstdint>
 #include <optional>
-#include "QtCore/qstring.h"
+// #include "QtCore/qstring.h"
 
 struct TimeStamp {
     int64_t hh{0}, mm{0}, ss{0}, ms{0};
@@ -28,13 +28,13 @@ struct TimeStamp {
         return std::format("{:02d}:{:02d}:{:02d}.{:03d}", hh, mm, ss, ms);
     }
     
-    QString to_qstring() const {
-        return QString("%1:%2:%3,%4")
-            .arg(hh, 2, 10, QChar('0'))
-            .arg(mm, 2, 10, QChar('0'))
-            .arg(ss, 2, 10, QChar('0'))
-            .arg(ms, 3, 10, QChar('0'));
-    }
+    // QString to_qstring() const {
+    //     return QString("%1:%2:%3,%4")
+    //         .arg(hh, 2, 10, QChar('0'))
+    //         .arg(mm, 2, 10, QChar('0'))
+    //         .arg(ss, 2, 10, QChar('0'))
+    //         .arg(ms, 3, 10, QChar('0'));
+    // }
 };
 
 struct TimeStampPair {

@@ -12,6 +12,7 @@ class VadFrame {
 public:
     virtual ~VadFrame() = default;
     virtual size_t frame_size() const noexcept = 0;
+    virtual size_t duration_ms() const noexcept = 0;
     virtual VadFormat process_frame(std::string_view frame) = 0;
 };
 } // namespace vad

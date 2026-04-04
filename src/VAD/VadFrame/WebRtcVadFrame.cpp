@@ -59,6 +59,11 @@ size_t vad::WebRtcVadFrame::frame_size() const noexcept
     return static_cast<size_t>(expected_bytes_per_frame());
 }
 
+size_t vad::WebRtcVadFrame::duration_ms() const noexcept
+{
+    return _config.frame_duration_ms;
+}
+
 VadFormat vad::WebRtcVadFrame::process_frame(std::string_view frame)
 {
 if (_handle == nullptr) {

@@ -130,6 +130,7 @@ public:
 
     /// @brief Size of the string
     [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t count() const;
 
     /// @brief Make a copy to a new std::string
     [[nodiscard]] std::string concatenate() const;

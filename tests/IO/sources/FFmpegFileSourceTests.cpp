@@ -29,7 +29,7 @@ public:
 
     explicit MockSink() : AudioTaskElement("MockSink") {
         auto* pad = add_pad(Direction::Receiving);
-        pad->set_chain_function([this](AudioTaskBufferList&& list) -> FlowReturn {
+        pad->set_push_function([this](AudioTaskBufferList&& list) -> FlowReturn {
             // 把收到的每个 buffer 存起来
             while (!list.empty()) {
                 received.push_back(list.pop_front());

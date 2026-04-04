@@ -16,12 +16,25 @@ void AudioTaskPad::unlink() noexcept {
 }
 FlowReturn AudioTaskPad::push(AudioTaskBufferList&& buffer) {
     auto peer_pad = _peer_pad.lock();
-    if (not peer_pad or not peer_pad->_chain_func) {
+    if (not peer_pad or not peer_pad->_push_func) {
         return FlowReturn::Failing;
     }
-    return peer_pad->_chain_func(std::move(buffer));
+    return peer_pad->_push_func(std::move(buffer));
 }
-void AudioTaskPad::set_chain_function(ChainFunction func) noexcept {
-    _chain_func = std::move(func);
+FlowReturn AudioTaskPad::pull(AudioTaskBufferList &buffer)
+{
+    auto peer_pad = _peer_pad.lock();
+    if (not peer_pad or not peer_pad->_push_func) {
+        return FlowReturn::Failing;
+    }
+    return peer_pad->_pull_func(buffer);
+}
+void AudioTaskPad::set_push_function(PushFunction func) noexcept
+{
+    _push_func = std::move(func);
+}
+void AudioTaskPad::set_pull_function(PullFunction func) noexcept
+{
+    _pull_func = std::move(func);
 }
 } // namespace audiotask::core

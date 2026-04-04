@@ -15,14 +15,16 @@ enum class FlowReturn {Ended, Failing, Flushing, Successful};
 class AudioTaskPad : public std::enable_shared_from_this<AudioTaskPad> {
     /// @name callback functions
     /// @{
-    using ChainFunction = std::function<FlowReturn(AudioTaskBufferList&&)>;
+    using PushFunction = std::function<FlowReturn(AudioTaskBufferList&&)>;
+    using PullFunction = std::function<FlowReturn(AudioTaskBufferList&)>;
     /// @todo Add event and query callback functions
     /// @}
 private:
     uint32_t _identifier;                   ///< Unique identifier for this pad
     Direction _direction;                   ///< Data flow direction
     std::weak_ptr<AudioTaskPad> _peer_pad;  ///< Weak reference to linked peer pad
-    ChainFunction _chain_func;              ///< Callback for processing incoming data
+    PushFunction _push_func;                ///< Callback for processing incoming data
+    PullFunction _pull_func;                ///< Callback for processing incoming data
 public:
     /// @brief Construct a new Audio Task Pad
     /// @param id Unique identifier for this pad
@@ -39,10 +41,13 @@ public:
     /// @param ChainFunc Function to be called when data is pushed to this pad
     /// @note Typically set on receiving pads to define data processing behavior
     [[nodiscard]] FlowReturn push(AudioTaskBufferList&& buffer);
+    [[nodiscard]] FlowReturn pull(AudioTaskBufferList& buffer);
+    // [[nodiscard]] FlowReturn push(AudioTaskBuffer&& buffer);
     /// @brief Set the chain function for processing incoming data
     /// @param ChainFunc Function to be called when data is pushed to this pad
     /// @note Typically set on receiving pads to define data processing behavior
-    void set_chain_function(ChainFunction func) noexcept;
+    void set_push_function(PushFunction func) noexcept;
+    void set_pull_function(PullFunction func) noexcept;
     /// @brief Get the pad's unique identifier
     /// @return Const reference to pad ID
     [[nodiscard]] const uint32_t& id() const noexcept { return _identifier; }

@@ -1,3 +1,5 @@
 add_subdirectory(core)
 add_subdirectory(IO)
 add_subdirectory(VAD)
+add_subdirectory(GUI)
+add_subdirectory(ASR)

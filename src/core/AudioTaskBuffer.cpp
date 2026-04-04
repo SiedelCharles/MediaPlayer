@@ -157,6 +157,11 @@ size_t AudioTaskBufferList::size() const {
     return total;
 }
 
+size_t AudioTaskBufferList::count() const
+{
+    return _buffers.size();
+}
+
 std::string AudioTaskBufferList::concatenate() const {
     std::string result;
     result.reserve(size());
