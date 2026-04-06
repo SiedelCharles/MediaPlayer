@@ -1,4 +1,5 @@
 #include "AudioTaskPad.hpp"
+#include <iostream>
 namespace audiotask::core {
 AudioTaskPad::AudioTaskPad(uint32_t id, Direction dir) noexcept : _identifier(id), _direction(dir) {}
 bool AudioTaskPad::link(std::shared_ptr<AudioTaskPad> peer_pad) {
@@ -24,7 +25,7 @@ FlowReturn AudioTaskPad::push(AudioTaskBufferList&& buffer) {
 FlowReturn AudioTaskPad::pull(AudioTaskBufferList &buffer)
 {
     auto peer_pad = _peer_pad.lock();
-    if (not peer_pad or not peer_pad->_push_func) {
+    if (not peer_pad or not peer_pad->_pull_func) {
         return FlowReturn::Failing;
     }
     return peer_pad->_pull_func(buffer);

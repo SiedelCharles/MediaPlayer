@@ -2,6 +2,7 @@
 #include "AudioTaskSource.hpp"
 #include "AudioTaskElement.hpp"
 #include <mutex>
+#include <iostream>
 namespace audiotask::source {/// @brief Format:16-bit signed, 32-bit signed, 32-bit float, 64-bit float
 enum class SampleFormat {Undefined, S16, S32, F32, F64};
 /// @brief Config for source

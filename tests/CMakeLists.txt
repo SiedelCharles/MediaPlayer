@@ -58,7 +58,51 @@ target_link_libraries(VADTest
     GTest::gtest_main
 )
 
+add_executable(AsrTest
+    ASR/test_whisper.cpp
+)
+target_include_directories(AsrTest
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+    ${PROJECT_SOURCE_DIR}/src/VAD
+    ${PROJECT_SOURCE_DIR}/src/ASR
+)
+target_link_libraries(AsrTest
+    PRIVATE
+    io
+    vad
+    Core
+    Asr
+    GTest::gtest
+    GTest::gtest_main
+)
+
+add_executable(TrTest
+    TR/test_translate.cpp
+)
+target_include_directories(TrTest
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+    ${PROJECT_SOURCE_DIR}/src/VAD
+    ${PROJECT_SOURCE_DIR}/src/ASR
+    ${PROJECT_SOURCE_DIR}/src/TR
+)
+target_link_libraries(TrTest
+    PRIVATE
+    io
+    vad
+    Core
+    Asr
+    Tr
+    GTest::gtest
+    GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(CoreTest)
 gtest_discover_tests(IOTest)
 gtest_discover_tests(VADTest)
+add_test(NAME AsrTest COMMAND AsrTest)
+add_test(NAME TrTest COMMAND TrTest)

@@ -1,6 +1,7 @@
 #include "AudioTaskElement.hpp"
 #include "AudioTaskBufferStream.hpp"
 #include <stdexcept>
+#include <iostream>
 namespace audiotask::core
 {
 class AudioTaskQueue : public AudioTaskElement {
@@ -13,10 +14,15 @@ public:
             while (frame.count() > 0) {
                 _bufferstream.write(std::move(frame.pop_front()));
             }
+            return FlowReturn::Successful;
         });
         auto *sending_pad = add_pad(Direction::Sending);
         sending_pad->set_pull_function([this](AudioTaskBufferList& frame) ->FlowReturn {
             frame = AudioTaskBufferList(_bufferstream.try_pop());
+            if (frame.size() > 0) {
+                return FlowReturn::Successful;
+            }
+            return FlowReturn::Failing;
         });
     }
 };

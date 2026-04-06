@@ -55,6 +55,7 @@ option(MEDIAPLAYER_BUILD_TESTS "Build tests" ON)
 
 if(MSVC)
     add_compile_options($<$<CONFIG:Debug>:/U_DEBUG>)
+    add_compile_options(/utf-8)
 endif()
 
 add_link_options($<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)

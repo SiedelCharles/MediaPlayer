@@ -39,6 +39,7 @@ constexpr uint32_t VadTimestampSize = 1000;
 class AudioTaskVad : public core::AudioTaskElement {
 private:
     /// @todo timestamp
+    uint64_t _slices{};
     uint64_t _timestamp_index{};
     uint64_t _timestamp_duration{};
     std::vector<TimeStampPair> _timestamp_list{};

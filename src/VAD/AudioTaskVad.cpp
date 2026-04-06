@@ -1,4 +1,5 @@
 #include "AudioTaskVad.hpp"
+#include <iostream>
 
 void audiotask::vad::AudioTaskVad::process_data(core::AudioTaskBufferList &&chunk)
 {
@@ -36,8 +37,11 @@ void audiotask::vad::AudioTaskVad::process_data(core::AudioTaskBufferList &&chun
 void audiotask::vad::AudioTaskVad::send_frame(std::string &&frame)
 {
     _timestamp_list.emplace_back(_timestamp_index - _timestamp_duration, _timestamp_index);
+    auto back = _timestamp_list.back();
     auto *send_pad = get_pad(core::Direction::Sending);
     if (send_pad) {
+        std::cout << _slices << std::endl;
+        ++_slices;
         auto result = send_pad->push(core::AudioTaskBufferList(std::move(frame)));
     }
 }
