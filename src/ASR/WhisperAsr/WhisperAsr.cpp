@@ -30,7 +30,7 @@ void audiotask::asr::WhisperAsr::run()
             auto converted = std::move(convert_to_float32(buffer));
             pcm_float_batch.insert(pcm_float_batch.end(), converted.begin(), converted.end());
             ++vad_count;
-            if (pcm_float_batch.size() <= 12.0*16000) {
+            if (pcm_float_batch.size() <= 24.0*16000) {
                 buffer = {};
                 result = receive_pad->pull(buffer);
                 continue;
@@ -41,15 +41,18 @@ void audiotask::asr::WhisperAsr::run()
             if (b_result != 0) {
                 transcribed_sentence = "Failed";
             } else {
-                std::cout << "whisper segment:" << whisper_full_n_segments(_whisper_context) << std::endl;
                 pcm_float_batch.clear();
                 for (auto i = 0; i < whisper_full_n_segments(_whisper_context); ++i) {
                     const char *text = whisper_full_get_segment_text(_whisper_context, i);
                     transcribed_sentence += text;
                 }
             }
-            std::cout << "vad_count:" << vad_count << ", text:" << transcribed_sentence << std::endl;
+            std::cout << transcribed_sentence << std::endl;
+            auto *send_pad = get_pad(core::Direction::Sending);
             transcribed_text.emplace_back(vad_count, transcribed_sentence);
+            auto buffer = core::AudioTaskBufferList(std::to_string(vad_count));
+            buffer.append(core::AudioTaskBufferList(std::move(transcribed_sentence)));
+            send_pad->push(std::move(buffer));
         }
         buffer = {};
         result = receive_pad->pull(buffer);

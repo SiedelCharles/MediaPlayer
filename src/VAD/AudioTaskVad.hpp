@@ -20,7 +20,7 @@ public:
             _state = is_speeching ? VadState::Beginning : VadState::NoSpeeching;
             break;
         case VadState::Speeching:
-            _state = is_speeching ? VadState::Beginning : VadState::Ending;
+            _state = is_speeching ? VadState::Speeching : VadState::Ending;
             break;
         case VadState::Beginning:
             _state = is_speeching ? VadState::Speeching : VadState::Ending;
@@ -43,6 +43,7 @@ private:
     uint64_t _timestamp_index{};
     uint64_t _timestamp_duration{};
     std::vector<TimeStampPair> _timestamp_list{};
+    bool _is_running{false};
 
     std::string _buffer{};
     VadStateMechine _mechine;
@@ -54,16 +55,17 @@ public:
         : AudioTaskElement(name), _vadframe(std::move(vadframe)) {
             _timestamp_list.reserve(VadTimestampSize);
             _buffer.reserve(VadBufferSize); 
+            auto* pad2 = add_pad(core::Direction::Sending);
             auto* pad1 = add_pad(core::Direction::Receiving);
             pad1->set_push_function([this](core::AudioTaskBufferList&& chunk) -> core::FlowReturn{
                 this->process_data(std::move(chunk));
                 return core::FlowReturn::Successful;
             });
-            auto* pad2 = add_pad(core::Direction::Sending);
-            pad1->set_push_function([this](core::AudioTaskBufferList&& chunk) -> core::FlowReturn{
-                this->process_data(std::move(chunk));
-                return core::FlowReturn::Successful;
-            });
+            
+            // pad2->set_push_function([this](core::AudioTaskBufferList& chunk) -> core::FlowReturn{
+            //     this->process_data(std::move(chunk));
+            //     return core::FlowReturn::Successful;
+            // });
         }
     void send_frame(std::string&& frame);
 };

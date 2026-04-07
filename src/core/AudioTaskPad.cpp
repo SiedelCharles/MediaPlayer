@@ -20,6 +20,9 @@ FlowReturn AudioTaskPad::push(AudioTaskBufferList&& buffer) {
     if (not peer_pad or not peer_pad->_push_func) {
         return FlowReturn::Failing;
     }
+    if (!is_active()) {
+        peer_pad->set_active(false);
+    }
     return peer_pad->_push_func(std::move(buffer));
 }
 FlowReturn AudioTaskPad::pull(AudioTaskBufferList &buffer)
@@ -27,6 +30,9 @@ FlowReturn AudioTaskPad::pull(AudioTaskBufferList &buffer)
     auto peer_pad = _peer_pad.lock();
     if (not peer_pad or not peer_pad->_pull_func) {
         return FlowReturn::Failing;
+    }
+    if (!is_active()) {
+        peer_pad->set_active(false);
     }
     return peer_pad->_pull_func(buffer);
 }

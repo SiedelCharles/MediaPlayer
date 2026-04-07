@@ -22,6 +22,10 @@ public:
             if (frame.size() > 0) {
                 return FlowReturn::Successful;
             }
+            auto* pad = get_pad(Direction::Receiving);
+            if (!pad->is_active()) {
+                return FlowReturn::Ended;
+            }
             return FlowReturn::Failing;
         });
     }

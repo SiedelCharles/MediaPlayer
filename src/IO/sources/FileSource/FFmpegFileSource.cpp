@@ -192,6 +192,7 @@ bool FFmpegFileSource::seek(double time_sec) noexcept {
 }
 
 void FFmpegFileSource::run() {
+    std::cout << "Decoding" << std::endl;
     FramePtr frame(av_frame_alloc());
     PacketPtr packet(av_packet_alloc());
     if (!frame || !packet) {
@@ -362,7 +363,12 @@ void FFmpegFileSource::run() {
             av_frame_unref(frame.get());
         }
     }
-
+    auto pad = get_pad(core::Direction::Sending);
+    pad->set_active(false);
+    while (pad->is_active()) {
+        pad->set_active(false);
+    }
+    pad->push(core::AudioTaskBufferList());
     _running.store(false);
 }
 

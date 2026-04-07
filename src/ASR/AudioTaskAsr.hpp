@@ -15,6 +15,7 @@ public:
 explicit AudioTaskAsr(const std::string& name = "Asr") noexcept
         : AudioTaskElement(name) {
         add_pad(core::Direction::Receiving);
+        add_pad(core::Direction::Sending);
         transcribed_text.reserve(MAX_TRANSCRIBED_TEXT_SIZE);
     }
     ~AudioTaskAsr() override {
@@ -36,6 +37,8 @@ explicit AudioTaskAsr(const std::string& name = "Asr") noexcept
         const bool is_running = _running.exchange(false);
         if (_thread.joinable()) _thread.join();
         return is_running;
+    }[[nodiscard]] bool is_running() {
+        return _running.load();
     }
     [[nodiscard]] const std::vector<std::pair<size_t, std::string>>& get_text() const {
         /// @todo keep thread-safe;

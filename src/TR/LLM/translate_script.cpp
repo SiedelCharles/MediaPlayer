@@ -37,3 +37,14 @@ bool combination(py::module_& s_script, const std::string& timestamp_text, const
         return false;
     }
 }
+
+std::string translate_llm_deepseek(py::module_ &s_script, const std::string &text, const std::string &src_lang, const std::string &dst_lang, const std::string &prompt)
+{
+    try {
+        py::object func = s_script.attr("translate_llm_deepseek");
+        py::object result_obj = func(text, src_lang, dst_lang, prompt);
+        return result_obj.cast<std::string>();
+    } catch (const py::error_already_set& e) {
+        return std::string{};
+    }
+}

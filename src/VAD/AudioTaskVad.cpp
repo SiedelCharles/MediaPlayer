@@ -39,8 +39,14 @@ void audiotask::vad::AudioTaskVad::send_frame(std::string &&frame)
     _timestamp_list.emplace_back(_timestamp_index - _timestamp_duration, _timestamp_index);
     auto back = _timestamp_list.back();
     auto *send_pad = get_pad(core::Direction::Sending);
+    auto *receive_pad = get_pad(core::Direction::Receiving);
+    if (!receive_pad->is_active()) {
+        send_pad->set_active(false);
+        while (send_pad->is_active()) {
+            send_pad->set_active(false);
+        }
+    }
     if (send_pad) {
-        std::cout << _slices << std::endl;
         ++_slices;
         auto result = send_pad->push(core::AudioTaskBufferList(std::move(frame)));
     }

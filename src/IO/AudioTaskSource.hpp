@@ -20,7 +20,10 @@ public:
     /// @param name Human-readable element name
     explicit AudioTaskSource(const std::string& name = "Source") noexcept
         : AudioTaskElement(name) {
-        add_pad(core::Direction::Sending);
+        auto* pad = add_pad(core::Direction::Sending);
+        pad->set_state_query_function([this]() {
+            return is_running();
+        });
     }
     ~AudioTaskSource() override {
         stop();
@@ -33,6 +36,9 @@ public:
         if (_thread.joinable()) _thread.join();
         _thread = std::thread([this]() { run(); });
         return true;
+    }
+    [[nodiscard]] bool is_running() const {
+        return _running.load();
     }
     /// @brief Stop the source element
     /// @details Signals thread to stop and waits for completion

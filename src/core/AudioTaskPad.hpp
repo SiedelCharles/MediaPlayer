@@ -17,6 +17,7 @@ class AudioTaskPad : public std::enable_shared_from_this<AudioTaskPad> {
     /// @{
     using PushFunction = std::function<FlowReturn(AudioTaskBufferList&&)>;
     using PullFunction = std::function<FlowReturn(AudioTaskBufferList&)>;
+    using StateQueryFunction = std::function<bool()>; 
     /// @todo Add event and query callback functions
     /// @}
 private:
@@ -25,7 +26,15 @@ private:
     std::weak_ptr<AudioTaskPad> _peer_pad;  ///< Weak reference to linked peer pad
     PushFunction _push_func;                ///< Callback for processing incoming data
     PullFunction _pull_func;                ///< Callback for processing incoming data
+    std::atomic<bool> _active{true};
+    StateQueryFunction _state_query_func;
 public:
+    void set_active(bool active) noexcept {
+        _active.store(active, std::memory_order_release);
+    }
+    bool is_active() const noexcept {
+        return _active.load(std::memory_order_acquire);
+    }
     /// @brief Construct a new Audio Task Pad
     /// @param id Unique identifier for this pad
     /// @param direction Data flow direction (Source or Sink)
@@ -48,6 +57,16 @@ public:
     /// @note Typically set on receiving pads to define data processing behavior
     void set_push_function(PushFunction func) noexcept;
     void set_pull_function(PullFunction func) noexcept;
+    void set_state_query_function(StateQueryFunction func) noexcept {
+        _state_query_func = std::move(func);
+    }
+    
+    [[nodiscard]] bool query_state() const noexcept {
+        if (_state_query_func) {
+            return _state_query_func();
+        }
+        return true;
+    }
     /// @brief Get the pad's unique identifier
     /// @return Const reference to pad ID
     [[nodiscard]] const uint32_t& id() const noexcept { return _identifier; }
