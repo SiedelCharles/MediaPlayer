@@ -368,6 +368,7 @@ void FFmpegFileSource::run() {
     while (pad->is_active()) {
         pad->set_active(false);
     }
+    std::cout << "Source ended" << std::endl;
     pad->push(core::AudioTaskBufferList());
     _running.store(false);
 }

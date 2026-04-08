@@ -24,6 +24,7 @@ public:
             }
             auto* pad = get_pad(Direction::Receiving);
             if (!pad->is_active()) {
+                std::cout << "Queue ended" << std::endl;
                 return FlowReturn::Ended;
             }
             return FlowReturn::Failing;

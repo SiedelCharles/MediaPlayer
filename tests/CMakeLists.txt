@@ -100,9 +100,37 @@ target_link_libraries(TrTest
     GTest::gtest_main
 )
 
+add_executable(Tts_Test
+    TTS/test_tts.cpp
+)
+target_include_directories(Tts_Test
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+    ${PROJECT_SOURCE_DIR}/src/VAD
+    ${PROJECT_SOURCE_DIR}/src/ASR
+    ${PROJECT_SOURCE_DIR}/src/TR
+    ${PROJECT_SOURCE_DIR}/src/TTS
+)
+target_link_options(Tts_Test PRIVATE $<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
+target_link_libraries(Tts_Test
+    PRIVATE
+    io
+    vad
+    Core
+    Asr
+    Tr
+    Tts
+    pybind11::embed
+    Python::Python
+    GTest::gtest
+    GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(CoreTest)
 gtest_discover_tests(IOTest)
 gtest_discover_tests(VADTest)
 add_test(NAME AsrTest COMMAND AsrTest)
 add_test(NAME TrTest COMMAND TrTest)
+add_test(NAME TtsTest COMMAND Tts_Test)

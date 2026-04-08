@@ -30,7 +30,7 @@ void audiotask::asr::WhisperAsr::run()
             auto converted = std::move(convert_to_float32(buffer));
             pcm_float_batch.insert(pcm_float_batch.end(), converted.begin(), converted.end());
             ++vad_count;
-            if (pcm_float_batch.size() <= 24.0*16000) {
+            if (pcm_float_batch.size() <= 12.0*16000) {
                 buffer = {};
                 result = receive_pad->pull(buffer);
                 continue;
@@ -57,6 +57,10 @@ void audiotask::asr::WhisperAsr::run()
         buffer = {};
         result = receive_pad->pull(buffer);
     }
+    std::cout << "whisper ended" << std::endl;
+    auto *send_pad = get_pad(core::Direction::Sending);
+    send_pad->set_active(false);
+    send_pad->push(core::AudioTaskBufferList());
     _running.store(false);
 }
 

@@ -12,7 +12,7 @@ class AudioTaskAsrSink : public QObject, public core::AudioTaskElement {
     Q_OBJECT
 signals:
     void text_recognized(const size_t vad_count, const QString& text);
-    // void text_done();
+    void text_done();
 public:
     explicit AudioTaskAsrSink(const std::string& name = "AsrSink") noexcept
         : QObject(nullptr), AudioTaskElement(name) {
@@ -24,7 +24,7 @@ public:
                 text_recognized(std::stoi(front.copy()), QString::fromStdString(text));
             }
             if (!pad->is_active()) {
-                // emit text_done();
+                emit text_done();
             }
             return core::FlowReturn::Successful;
         });

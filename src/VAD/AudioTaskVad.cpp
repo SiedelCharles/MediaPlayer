@@ -5,6 +5,16 @@ void audiotask::vad::AudioTaskVad::process_data(core::AudioTaskBufferList &&chun
 {
     auto len = _vadframe->frame_size();
     _bytestream.append(std::move(chunk));
+    auto *send_pad = get_pad(core::Direction::Sending);
+    auto *receive_pad = get_pad(core::Direction::Receiving);
+    if (!receive_pad->is_active()) {
+        send_pad->set_active(false);
+        while (send_pad->is_active()) {
+            send_pad->set_active(false);
+        }
+        send_pad->push(core::AudioTaskBufferList());
+        std::cout << "vad ended" << std::endl;
+    }
     while (_bytestream.has(len))
     {
         auto frame_data = _bytestream.peek_copy(len);
@@ -32,6 +42,7 @@ void audiotask::vad::AudioTaskVad::process_data(core::AudioTaskBufferList &&chun
                 break;
         }
     }
+
 }
 
 void audiotask::vad::AudioTaskVad::send_frame(std::string &&frame)
@@ -40,14 +51,15 @@ void audiotask::vad::AudioTaskVad::send_frame(std::string &&frame)
     auto back = _timestamp_list.back();
     auto *send_pad = get_pad(core::Direction::Sending);
     auto *receive_pad = get_pad(core::Direction::Receiving);
-    if (!receive_pad->is_active()) {
-        send_pad->set_active(false);
-        while (send_pad->is_active()) {
-            send_pad->set_active(false);
-        }
-    }
     if (send_pad) {
         ++_slices;
+        if (!receive_pad->is_active()) {
+            send_pad->set_active(false);
+            while (send_pad->is_active()) {
+                send_pad->set_active(false);
+            }
+        std::cout << "vad ended" << std::endl;
+    }
         auto result = send_pad->push(core::AudioTaskBufferList(std::move(frame)));
     }
 }
