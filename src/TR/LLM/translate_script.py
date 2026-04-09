@@ -1,5 +1,10 @@
 import re
 from openai import OpenAI
+import httpx
+
+# 创建精细的超时控制对象
+# timeout=300 是总读取超时，connect=5.0 是连接超时，两者独立控制
+custom_timeout = httpx.Timeout(timeout=300.0, connect=5.0)
 
 def process_srt(source_file, output_file1, output_file2):
     # print(source_file)
@@ -17,7 +22,8 @@ def translate_llm_deepseek(text: str, src_lang: str, dst_lang: str, prompt: str)
     # 示例：接入本地 LLM（如 Ollama）
     client = OpenAI(
         api_key="sk-06e36ac0d1af406bb1749744c48b943a",
-        base_url="https://api.deepseek.com"
+        base_url="https://api.deepseek.com",
+        timeout=custom_timeout
     )
 
     # 构建 system prompt
