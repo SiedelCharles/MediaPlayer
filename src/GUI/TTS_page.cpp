@@ -21,6 +21,7 @@
 #include <QGroupBox>
 #include <iostream>
 #include <fstream>
+#include "FX/FFmpegAudioTask.hpp"
 
 struct SubtitleEntry {
     TimeStampPair times;
@@ -74,33 +75,91 @@ std::vector<SubtitleEntry> parseSubtitleFileToEntries(const QString &path) {
 
 // ========== Python 解释器管理 ==========
 static py::scoped_interpreter* g_guard = nullptr;
+MergeWorker::MergeWorker(const QString &bgAudioPath,
+                         const QString &outputDir,
+                         const QString &timestampFile,
+                         const QString &outputFile,
+                         QObject *parent)
+    : QObject(parent)
+    , m_bgAudioPath(bgAudioPath)
+    , m_outputDir(outputDir)
+    , m_timestampFile(timestampFile)
+    , m_outputFile(outputFile)
+{}
 
-// static void ensurePythonInit() {
-//     qDebug() << "=== 开始初始化 Python ===";
-//     qDebug() << "当前线程:" << QThread::currentThread();
-//     qDebug() << "主线程:" << QCoreApplication::instance()->thread();
-    
-//     Q_ASSERT(QThread::currentThread() == QCoreApplication::instance()->thread());
-    
-//     if (!g_guard) {
-//         qDebug() << "→ 设置 Python Home...";
-//         Py_SetPythonHome(
-//             L"D:/VisualStudio_Created/VisualStudio_Resource/"
-//             L"miniconda/envs/audio"
-//         );
-//         qDebug() << "✓ Python Home 设置完成";
-        
-//         qDebug() << "→ 创建 scoped_interpreter...";
-//         g_guard = new py::scoped_interpreter();  // ← 很可能卡在这里
-//         qDebug() << "✓ scoped_interpreter 创建完成";
-        
-//         qDebug() << "→ 释放 GIL...";
-//         PyEval_SaveThread();
-//         qDebug() << "✓ GIL 释放完成";
-//     }
-//     qDebug() << "=== Python 初始化完成 ===";
-// }
+void MergeWorker::doMerge() {
+    // 1. 读取时间戳文件
+    auto timestampVec = read_timestamp_from_file(
+        m_timestampFile.toLocal8Bit().constData());
 
+    if (timestampVec.empty()) {
+        emit errorOccurred("时间戳文件无效或为空: " + m_timestampFile);
+        return;
+    }
+    qDebug() << "here timestampVec size:" << timestampVec.size();
+
+    // 2. 根据时间戳条目数量，构造 subtitle_XXXX.wav 路径列表
+    std::vector<std::string> fileVec;
+    for (int i = 0; i < static_cast<int>(timestampVec.size()); ++i) {
+        QString audioName = m_outputDir + "/" +
+                            QString("subtitle_%1.wav").arg(i + 1, 4, 10, QChar('0'));
+        fileVec.push_back(audioName.toStdString());
+    }
+    qDebug() << "subtitle audio files:";
+    // 3. 创建 FFmpegAudioTask，使用事件循环等待异步结果
+    //    由于 doMerge 本身在子线程中运行，用局部 QEventLoop 同步
+    auto *audioTask = new FFmpegAudioTask();
+
+    FFmpegFormatConfig config{16000, 2, AV_SAMPLE_FMT_S16};
+    bool initOk = audioTask->init(m_bgAudioPath);
+    if (!initOk) {
+        delete audioTask;
+        emit errorOccurred("无法初始化音频解码器，请检查背景音频文件: " + m_bgAudioPath);
+        return;
+    }
+    qDebug() << "AudioTask initialized successfully with background audio:" << m_bgAudioPath;
+    // 用局部事件循环等待 decode 完成
+    QEventLoop loop;
+    bool decodeSuccess = true;
+
+    QObject::connect(audioTask, &FFmpegAudioTask::error_ffmpeg,
+                     [&loop, &decodeSuccess](const QString &msg) {
+                         Q_UNUSED(msg)
+                         decodeSuccess = false;
+                         loop.quit();
+                     });
+
+    // QObject::connect(audioTask, &FFmpegAudioTask::message_finished,
+    //                  [&loop]() {
+    //                      loop.quit();
+    //                  });
+    // loop.exec();
+    audioTask->decode(config, false);
+
+    if (!decodeSuccess) {
+        delete audioTask;
+        emit errorOccurred("背景音频解码失败");
+        return;
+    }
+
+    // 4. 执行 merge
+    FFmpegFormatConfig outConfig{16000, 2, AV_SAMPLE_FMT_S16};
+    bool mergeOk = audioTask->merge(
+        timestampVec,
+        fileVec,
+        m_outputFile,
+        outConfig,
+        FFmpegMergeOption::MergeMixing
+    );
+    qDebug() << "Audio merge finished, success:" << mergeOk;
+    delete audioTask;
+
+    if (mergeOk) {
+        emit finished(m_outputFile);
+    } else {
+        emit errorOccurred("音频合并失败，请检查各字幕片段是否已生成");
+    }
+}
 // ========== TTSWorker ==========
 TTSWorker::TTSWorker(const QString &subtitlePath,
                      const QString &outputDir,
@@ -169,7 +228,7 @@ void TTSWorker::doSynthesize() {
                 return;
             }
             QTextStream out(&tsFile);
-            out << "# 格式: 音频文件名 开始时间(ms) 结束时间(ms) 文本\n";
+            // out << "# 格式: 音频文件名 开始时间(ms) 结束时间(ms) 文本\n";
 
             // 5. 逐句合成
             int total = static_cast<int>(entries.size());
@@ -189,15 +248,7 @@ void TTSWorker::doSynthesize() {
                     24000,
                     0.7
                 );
-
-                int64_t startMs = entry.times.timestamp1.milliseconds();
-                int64_t endMs   = entry.times.timestamp2.milliseconds();
-                out << audioName << " "
-                    << startMs << " "
-                    << endMs   << " "
-                    << entry.text << "\n";
-
-                int percent = 15 + (i + 1) * 80 / total;
+                out << entry.times.to_string().c_str() << "\n";
             }
             tsFile.close();
             resultDir = m_outputDir;
@@ -390,20 +441,73 @@ void PageTTS::onGenerateClicked() {
 }
 
 void PageTTS::onMergeAudioClicked() {
-    if (m_lastGeneratedAudio.isEmpty() || !QFile::exists(m_lastGeneratedAudio)) {
-        statusLabel->setText("⚠ 没有可合并的音频，请先生成");
+     // 防重入
+    if (m_mergeThread && m_mergeThread->isRunning()) {
+        statusLabel->setText("⚠ 正在合并中，请等待完成");
         return;
     }
-    // mergeEdit 存的是显示名，实际路径存在 m_mergePath
-    if (m_mergePath.isEmpty() || !QFile::exists(m_mergePath)) {
-        statusLabel->setText("⚠ 请先选择要合并的音频文件");
+    if (m_workerThread && m_workerThread->isRunning()) {
+        statusLabel->setText("⚠ 语音合成尚未完成，请稍候");
         return;
     }
 
-    statusLabel->setText("⏳ 正在合并音频…");
-    QTimer::singleShot(1000, this, [this]() {
-        statusLabel->setText("✔ 合并完成");
+    // 校验输出目录
+    if (m_outputDir.trimmed().isEmpty()) {
+        statusLabel->setText("⚠ 请先选择输出目录");
+        return;
+    }
+
+    // 校验时间戳文件（合成完成后会写入 timestamps.txt）
+    QDir dir(m_outputDir);
+    QString timestampFile = dir.filePath("timestamps.txt");
+    if (!QFile::exists(timestampFile)) {
+        statusLabel->setText("⚠ 未找到时间戳文件，请先完成语音合成");
+        return;
+    }
+
+    // 校验背景音频
+    if (m_mergePath.trimmed().isEmpty() || !QFile::exists(m_mergePath)) {
+        statusLabel->setText("⚠ 请先选择背景音频文件");
+        return;
+    }
+
+    // 输出文件路径
+    QString outputFile = dir.filePath("merged_output.wav");
+
+    updateButtonState(true);
+    statusLabel->setText("⏳ 正在合并音频，请稍候…");
+
+    m_mergeThread = new QThread(this);
+    auto *mergeWorker = new MergeWorker(
+        m_mergePath,
+        m_outputDir,
+        timestampFile,
+        outputFile
+    );
+    mergeWorker->moveToThread(m_mergeThread);
+
+    connect(m_mergeThread,  &QThread::started,
+            mergeWorker,    &MergeWorker::doMerge);
+
+    connect(mergeWorker,    &MergeWorker::finished,
+            this,           &PageTTS::onMergeFinished);
+    connect(mergeWorker,    &MergeWorker::errorOccurred,
+            this,           &PageTTS::onMergeError);
+
+    // 线程清理（和 onGenerateClicked 保持一致）
+    connect(mergeWorker,    &MergeWorker::finished,
+            m_mergeThread,  &QThread::quit);
+    connect(mergeWorker,    &MergeWorker::errorOccurred,
+            m_mergeThread,  &QThread::quit);
+    connect(m_mergeThread,  &QThread::finished,
+            mergeWorker,    &QObject::deleteLater);
+    connect(m_mergeThread,  &QThread::finished,
+            m_mergeThread,  &QObject::deleteLater);
+    connect(m_mergeThread,  &QThread::finished, this, [this]() {
+        m_mergeThread = nullptr;
     });
+
+    m_mergeThread->start();
 }
 
 void PageTTS::onSynthesisFinished(const QString &audioPath) {
@@ -430,6 +534,20 @@ void PageTTS::updateButtonState(bool synthesizing) {
     savePathBtn->setEnabled(!synthesizing);
     sampleBtn->setEnabled(!synthesizing);
     mergeBtn->setEnabled(!synthesizing);
+}
+
+void PageTTS::onMergeFinished(const QString &outputPath) {
+    statusLabel->setText(
+        QString("✔ 合并完成: %1").arg(QFileInfo(outputPath).fileName()));
+    updateButtonState(false);
+    QMessageBox::information(this, "成功",
+        QString("音频合并完成！\n输出文件: %1").arg(outputPath));
+}
+
+void PageTTS::onMergeError(const QString &errMsg) {
+    statusLabel->setText("✘ " + errMsg);
+    updateButtonState(false);
+    QMessageBox::critical(this, "合并失败", errMsg);
 }
 
 void PageTTS::setupUi() {

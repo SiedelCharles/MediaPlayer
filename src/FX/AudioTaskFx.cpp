@@ -3,7 +3,7 @@
 // #include "QtCore/qdebug.h"
 #include <iostream>
 
-constexpr double merge_gain = 0.05;
+constexpr double merge_gain = 0.2;
 
 bool FFmpegAudioTask::initialize(const QString &file_path) noexcept
 {
@@ -359,6 +359,7 @@ bool FFmpegAudioTask::merge(const std::vector<TimeStampPair> &timestamp_list, co
 
 bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& output_file)
 {
+    std::cout << "encode called with output file: " << output_file.toStdString() << std::endl;
     if (auto b_result = initialize_output(config, output_file)
         ; !b_result) {
         emit_formatted_error("Output file failed to initialized");
@@ -477,6 +478,7 @@ bool FFmpegAudioTask::encode(const FFmpegFormatConfig &config, const QString& ou
 
 bool FFmpegAudioTask::merge_mixing(const std::vector<TimeStampPair> &timestamp_list, const std::vector<std::string> &input_file, const QString &output_file, const FFmpegFormatConfig& config)
 {
+    std::cout << "merge_mixing called with output file: " << output_file.toStdString() << std::endl;
     if (mode() != AudioTaskBufferType::Output) {
         return false;
     }

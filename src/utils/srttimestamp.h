@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstdint>
 #include <optional>
+#include <iostream>
 // #include "QtCore/qstring.h"
 
 struct TimeStamp {

@@ -127,6 +127,35 @@ target_link_libraries(Tts_Test
     GTest::gtest_main
 )
 
+add_executable(Fx_Test
+    FX/test_fx.cpp
+)
+target_include_directories(Fx_Test
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/core
+    ${PROJECT_SOURCE_DIR}/src/IO
+    ${PROJECT_SOURCE_DIR}/src/VAD
+    ${PROJECT_SOURCE_DIR}/src/ASR
+    ${PROJECT_SOURCE_DIR}/src/TR
+    ${PROJECT_SOURCE_DIR}/src/TTS
+    ${PROJECT_SOURCE_DIR}/src/FX
+)
+target_link_options(Fx_Test PRIVATE $<$<CONFIG:Debug>:/NODEFAULTLIB:python311_d.lib>)
+target_link_libraries(Fx_Test
+    PRIVATE
+    io
+    vad
+    Core
+    Asr
+    Tr
+    Tts
+    Fx
+    pybind11::embed
+    Python::Python
+    GTest::gtest
+    GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(CoreTest)
 gtest_discover_tests(IOTest)
@@ -134,3 +163,4 @@ gtest_discover_tests(VADTest)
 add_test(NAME AsrTest COMMAND AsrTest)
 add_test(NAME TrTest COMMAND TrTest)
 add_test(NAME TtsTest COMMAND Tts_Test)
+add_test(NAME FxTest COMMAND Fx_Test)

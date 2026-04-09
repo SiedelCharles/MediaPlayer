@@ -9,6 +9,29 @@
 #include <QTextEdit>
 #include <QSplitter>
 
+class MergeWorker : public QObject {
+    Q_OBJECT
+public:
+    explicit MergeWorker(const QString &bgAudioPath,
+                         const QString &outputDir,
+                         const QString &timestampFile,
+                         const QString &outputFile,
+                         QObject *parent = nullptr);
+
+signals:
+    void finished(const QString &outputPath);
+    void errorOccurred(const QString &errMsg);
+
+public slots:
+    void doMerge();
+
+private:
+    QString m_bgAudioPath;
+    QString m_outputDir;
+    QString m_timestampFile;
+    QString m_outputFile;
+};
+
 // 前向声明 TTS 工作类
 class TTSWorker : public QObject {
     Q_OBJECT
@@ -51,6 +74,8 @@ private slots:
     void onSynthesisFinished(const QString &audioPath);
     void onSynthesisError(const QString &errMsg);
     void onSynthesisProgress(int percent);
+    void onMergeFinished(const QString &outputPath);
+    void onMergeError(const QString &errMsg);
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -82,4 +107,5 @@ private:
     QString      m_lastGeneratedAudio;  // 最近一次生成的音频文件路径
     QThread      *m_workerThread = nullptr;
     TTSWorker    *m_worker = nullptr;
+    QThread      *m_mergeThread = nullptr;
 };
