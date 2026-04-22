@@ -3,7 +3,7 @@
 // #include "QtCore/qdebug.h"
 #include <iostream>
 
-constexpr double merge_gain = 0.2;
+constexpr double merge_gain = 0.15;
 
 bool FFmpegAudioTask::initialize(const QString &file_path) noexcept
 {

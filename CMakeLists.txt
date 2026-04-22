@@ -1,3 +1,5 @@
+set(CMAKE_TOOLCHAIN_FILE "D:/VisualStudio_Created/VisualStudio_Resource/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "Vcpkg toolchain")
+
 cmake_minimum_required(VERSION 3.23.0)
 
 project(
@@ -30,6 +32,11 @@ set(pybind11_DIR "D:/VisualStudio_Created/VisualStudio_Resource/miniconda/envs/a
 set(PYBIND11_PYTHON_LIBRARY_DEBUG "${Python_LIBRARIES}")
 find_package(pybind11 CONFIG REQUIRED)
 set(DEPENDENCY_PATH ${CMAKE_SOURCE_DIR}/dependency)
+
+find_package(glfw3 REQUIRED)
+find_package(OpenAL CONFIG REQUIRED)
+find_package(glm REQUIRED)
+find_package(glad REQUIRED)
 
 set(FFMPEG_LIB_PATH ${DEPENDENCY_PATH}/ffmpeg/lib)
 set(FFMPEG_LIBS #库文件,根据依赖关系,越往下越底层

@@ -3,6 +3,7 @@
 #include <thread>
 #include <atomic>
 #include <iostream>
+
 namespace audiotask::source {
 /// @brief Base class for audio source elements that generate data
 /// @details Sources run in a separate thread and push data downstream via sending pad.

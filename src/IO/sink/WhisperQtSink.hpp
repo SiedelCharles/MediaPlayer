@@ -5,7 +5,7 @@
 #include "QtCore/qstring.h"
 #include <mutex>
 #include <vector>
-
+#include "AL/al.h"
 namespace audiotask::sink
 {
 class AudioTaskAsrSink : public QObject, public core::AudioTaskElement {

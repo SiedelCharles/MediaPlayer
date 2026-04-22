@@ -58,3 +58,5 @@ aborted/
 *.vtt
 
 aborted/
+
+resources/tests/

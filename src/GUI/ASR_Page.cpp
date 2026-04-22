@@ -322,13 +322,14 @@ void PageTranscription::slot_StartThread(QTreeWidgetItem *item, int column)
 
     std::shared_ptr<audiotask::sink::AudioTaskAsrSink> sink = std::make_unique<audiotask::sink::AudioTaskAsrSink>();
     _pipeline->add(source);
-    _pipeline->add(vad);
+    // _pipeline->add(vad);
     _pipeline->add(asr);
     _pipeline->add(buffer_stream);
     _pipeline->add(sink);
     
-    _pipeline->link(source.get(), vad.get());
-    _pipeline->link(vad.get(), buffer_stream.get());
+    _pipeline->link(source.get(), buffer_stream.get());
+    // _pipeline->link(source.get(), vad.get());
+    // _pipeline->link(vad.get(), buffer_stream.get());
     _pipeline->link(buffer_stream.get(), asr.get());
     _pipeline->link(asr.get(), sink.get());
     connect(sink.get(), &audiotask::sink::AudioTaskAsrSink::text_recognized, this, &PageTranscription::slot_SetText);
